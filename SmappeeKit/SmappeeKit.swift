@@ -9,6 +9,12 @@
 import Foundation
 import SwiftyJSON
 
+/// Login State for the Smappee client
+///
+/// - ``LoggedIn`` - In this state the client has an access token and a refresh token. The tokens may be expired.
+/// - ``AccessTokenExpired`` - In this state we know that the access token has expired, but perhaps the refresh token is still valid
+/// - ``LoggedOut`` - In this state we have no valid access or refresh tokens, and we need the user to supply login credentials to log in again
+
 enum SmappeeLoginState: Printable {
     case LoggedIn(accessToken: String, refreshToken: String)
     case AccessTokenExpired(String)
@@ -140,7 +146,7 @@ class SmappeeRequest {
             })
         }
         else {
-            completion(result: TokenRequestResult.Failure("No login handler provided"))
+            completion(result: TokenRequestResult.Failure("No SmappeeControllerDelegate provided"))
         }
     }
     
@@ -158,15 +164,29 @@ class SmappeeRequest {
     class func sendTokenRequest(tokenRequest: NSURLRequest, completion: (result: TokenRequestResult) -> Void) {
         NSURLConnection.sendAsynchronousRequest(tokenRequest, queue: NSOperationQueue.mainQueue()) {
             
-            (response: NSURLResponse!, data: NSData!, error: NSError!) in
-            
-            let json = JSON(data: data)
-            if let accessToken: String = json["access_token"].string,
-                let refreshToken: String = json["refresh_token"].string {
-                    completion(result: .Success(accessToken: accessToken, refreshToken: refreshToken))
+            (response: NSURLResponse!, data: NSData?, error: NSError?) in
+            if let data = data {
+                let json = JSON(data: data)
+                if let accessToken: String = json["access_token"].string,
+                    let refreshToken: String = json["refresh_token"].string {
+                        completion(result: .Success(accessToken: accessToken, refreshToken: refreshToken))
+                }
+                else if let error: String = json["error"].string {
+                    var errorMessage = error
+                    if let errorDescription: String = json["error_description"].string {
+                        errorMessage += ": \(errorDescription)"
+                    }
+                    completion(result: .Failure(errorMessage))
+                }
+                else {
+                    completion(result: .Failure("Could not parse reply"))
+                }
+            }
+            else if let error = error {
+                completion(result: .Failure(error.description))
             }
             else {
-                completion(result: .Failure("Could not parse reply"))
+                completion(result: .Failure("Internal error"))
             }
         }
     }
@@ -300,6 +320,22 @@ class SmappeeController {
         self.clientId = clientId
         self.clientSecret = clientSecret
         self.loginState = loginState
+    }
+    
+    /// :returns: *true* if ``loginState`` is ``.LoggedIn`` or ``.AccessTokenExpired``. In both cases we assume that we have, or can get a valid access token
+
+    func loggedIn() -> Bool {
+        switch loginState {
+        case .LoggedOut:
+            return false
+        default:
+            return true
+        }
+    }
+    
+    /// This implicitly clears access and refresh tokens
+    func logOut() {
+        loginState = .LoggedOut
     }
     
     // MARK: API Methods
