@@ -126,29 +126,12 @@ class ViewController: UIViewController, SmappeControllerDelegate, LoginViewContr
     }
     
     
-    func getActuators (serviceLocation: ServiceLocation, completion: ServiceLocationInfoRequestResult -> Void) {
-        smappeeController.sendServiceLocationInfoRequest(serviceLocation) {
-            result in
-            switch result {
-            case .Success(let box):
-                let serviceLocationInfo = box.unbox
-                self.actuator = serviceLocationInfo.actuators.first
-            case .Failure(let errorMessage):
-                println(errorMessage)
-            }
-            self.updateButtonStates()
-        }
-    }
-    
     func actuatorOn(actuator: Actuator) {
-        smappeeController.sendTurnOnRequest(actuator) { result in
-        }
+        smappeeController.sendTurnOnRequest(actuator) { result in }
     }
     
     func actuatorOff(actuator: Actuator) {
-        smappeeController.sendTurnOffRequest(actuator) { result in
-            
-        }
+        smappeeController.sendTurnOffRequest(actuator) { result in }
     }
 
 
