@@ -7,12 +7,13 @@
 //
 
 import UIKit
+import LlamaKit
 
 class ViewController: UIViewController, SmappeControllerDelegate, LoginViewControllerDelegate {
 
     let smappeeController: SmappeeController
-    var serviceLocation: Int?
-    var actuator: Int?
+    var serviceLocation: ServiceLocation?
+    var actuator: Actuator?
     
     var loginCompletion: ((SmappeeCredentialsResult) -> Void)?
     
@@ -40,7 +41,7 @@ class ViewController: UIViewController, SmappeControllerDelegate, LoginViewContr
             self.presentViewController(loginViewController, animated: true, completion: nil)
         }
         else {
-            loginCompletion?(.Failure("Could not present login UI"))
+            loginCompletion?(smappeeLoginFailure("Could not present login UI"))
             loginCompletion = nil
         }
     }
@@ -51,10 +52,7 @@ class ViewController: UIViewController, SmappeControllerDelegate, LoginViewContr
 
         self.dismissViewControllerAnimated(true, completion: nil)
 
-        loginCompletion?(.Success(
-                username: username,
-                password: password
-                ))
+        loginCompletion?(smappeeLoginSuccess(username, password))
         loginCompletion = nil
     }
 
@@ -88,14 +86,14 @@ class ViewController: UIViewController, SmappeControllerDelegate, LoginViewContr
     }
     
     @IBAction func actuatorOneOn(sender: AnyObject) {
-        if let serviceLocation = serviceLocation, actuator = actuator {
-            actuatorOn(serviceLocation, actuator: actuator)
+        if let actuator = actuator {
+            actuatorOn(actuator)
         }
     }
 
     @IBAction func actuatorOneOff(sender: AnyObject) {
-        if let serviceLocation = serviceLocation, actuator = actuator {
-            actuatorOff(serviceLocation, actuator: actuator)
+        if let actuator = actuator {
+            actuatorOff(actuator)
         }
     }
     
@@ -108,29 +106,33 @@ class ViewController: UIViewController, SmappeControllerDelegate, LoginViewContr
     
     // MARK: SmappeeKit calls
 
+    
     func getServiceLocations() {
-        smappeeController.sendServiceLocationRequest { result in
-            switch (result) {
-            case .Success(let json):
-                self.serviceLocation = json["serviceLocations"][0]["serviceLocationId"].int
-                if let serviceLocation = self.serviceLocation {
-                    self.getActuators(serviceLocation)
+        smappeeController.sendServiceLocationRequest { r in
+            r.flatMap({ valueOrError($0.first, "No service locations found")
+            }).flatMap(self.smappeeController.sendServiceLocationInfoRequest) { r in
+                switch r {
+                case .Success(let box):
+                    let info = box.unbox
+                    self.actuator = info.actuators.first
+                    println("Success")
+                case .Failure(let box):
+                    let errorMessage = box.unbox
+                    println(errorMessage)
                 }
-                println(self.serviceLocation)
-            case .Failure(let errorMessage):
-                println(errorMessage)
+                self.updateButtonStates()
             }
-            self.updateButtonStates()
         }
     }
     
-    func getActuators (serviceLocation: Int) {
+    
+    func getActuators (serviceLocation: ServiceLocation, completion: ServiceLocationInfoRequestResult -> Void) {
         smappeeController.sendServiceLocationInfoRequest(serviceLocation) {
             result in
             switch result {
-            case .Success(let json):
-                println(json)
-                self.actuator = json["actuators"][0]["id"].int
+            case .Success(let box):
+                let serviceLocationInfo = box.unbox
+                self.actuator = serviceLocationInfo.actuators.first
             case .Failure(let errorMessage):
                 println(errorMessage)
             }
@@ -138,13 +140,13 @@ class ViewController: UIViewController, SmappeControllerDelegate, LoginViewContr
         }
     }
     
-    func actuatorOn(serviceLocation: Int, actuator: Int) {
-        smappeeController.sendTurnOnRequest(serviceLocation, actuator: actuator) { result in
+    func actuatorOn(actuator: Actuator) {
+        smappeeController.sendTurnOnRequest(actuator) { result in
         }
     }
     
-    func actuatorOff(serviceLocation: Int, actuator: Int) {
-        smappeeController.sendTurnOffRequest(serviceLocation, actuator: actuator) { result in
+    func actuatorOff(actuator: Actuator) {
+        smappeeController.sendTurnOffRequest(actuator) { result in
             
         }
     }

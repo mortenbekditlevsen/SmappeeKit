@@ -6,6 +6,12 @@
 // project.
 
 
+// LlamaKit
+#define COCOAPODS_POD_AVAILABLE_LlamaKit
+#define COCOAPODS_VERSION_MAJOR_LlamaKit 0
+#define COCOAPODS_VERSION_MINOR_LlamaKit 6
+#define COCOAPODS_VERSION_PATCH_LlamaKit 0
+
 // SwiftyJSON
 #define COCOAPODS_POD_AVAILABLE_SwiftyJSON
 #define COCOAPODS_VERSION_MAJOR_SwiftyJSON 2
