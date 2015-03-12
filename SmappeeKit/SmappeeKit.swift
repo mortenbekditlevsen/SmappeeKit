@@ -50,7 +50,7 @@ enum InternalRequestResult {
     case Failure(String)
 }
 
-typealias SmappeeRequestResult = Result<JSON, String>
+public typealias SmappeeRequestResult = Result<JSON, String>
 typealias TokenRequestResult = Result<(accessToken: String, refreshToken: String), String>
 
 public typealias ServiceLocationRequestResult = Result<[ServiceLocation], String>
@@ -81,26 +81,26 @@ public struct ServiceLocationInfo {
     let appliances: [Appliance]
 }
 
-struct Actuator {
+public struct Actuator {
     let serviceLocation: ServiceLocation
     let id: Int
     let name: String
 }
 
-struct Appliance {
+public struct Appliance {
     let serviceLocation: ServiceLocation
     let id: Int
     let name: String
     let type: String
 }
 
-struct ApplianceEvent {
+public struct ApplianceEvent {
     let appliance: Appliance
     let activePower: Double
     let timestamp: NSDate
 }
 
-struct Consumption {
+public struct Consumption {
     let consumption: Double
     let alwaysOn: Double
     let timestamp: NSDate
@@ -270,9 +270,15 @@ class SmappeeRequest {
                 }
             }
             else if let error = error {
-                completion(.AccessTokenExpired)
-//
-//                completion(.Failure(error.description))
+                /// TODO: Verify error message
+                // Error code -1012 means 'User cancelled authentication'. It appears that this can be the case when
+                // the reason is actually an expired access token.
+                if error.code == -1012 && error.domain == NSURLErrorDomain {
+                    completion(.AccessTokenExpired)
+                }
+                else {
+                    completion(.Failure(error.description))
+                }
             }
             else {
                 completion(.Failure("Internal error - response is not a HTTP response"))
@@ -283,11 +289,11 @@ class SmappeeRequest {
 
 // Delegate protocol for supplying login credentials
 
-protocol SmappeControllerDelegate: class {
+public protocol SmappeControllerDelegate: class {
     func loginWithCompletion(completion: (SmappeeCredentialsResult) -> Void)
 }
 
-enum SmappeeAggregation: Int {
+public enum SmappeeAggregation: Int {
     case FiveMinutePeriod = 1
     case Hourly
     case Daily
@@ -295,7 +301,15 @@ enum SmappeeAggregation: Int {
     case Yearly
 }
 
-class SmappeeController {
+public enum SmappeeActuatorDuration: Int {
+    case Indefinitely = 0
+    case FiveMinutes = 300
+    case QuarterOfAnHour = 900
+    case HalfAnHour = 1800
+    case Hour = 3600
+}
+
+public class SmappeeController {
     
     // MARK: API endpoints
     
@@ -559,24 +573,34 @@ class SmappeeController {
         }
     }
     
-    
     func sendTurnOnRequest(actuator: Actuator, completion: (SmappeeRequestResult) -> Void) {
-        let endPoint = actuatorEndPoint(actuator, on: true)
-        let request = NSMutableURLRequest.init(URL: NSURL.init(string: endPoint)!)
-        request.HTTPMethod = "POST"
-        request.HTTPBody = "{}".dataUsingEncoding(NSUTF8StringEncoding)
-        SmappeeRequest(urlRequest: request, controller: self, completion: completion)
+        sendTurnOnRequest(actuator, duration: .Indefinitely, completion: completion)
+    }
+
+    func sendTurnOnRequest(actuator: Actuator, duration: SmappeeActuatorDuration, completion: (SmappeeRequestResult) -> Void) {
+        sendActuatorRequest(actuator, on: true, duration: .Indefinitely, completion: completion)
     }
     
     func sendTurnOffRequest(actuator: Actuator, completion: (SmappeeRequestResult) -> Void) {
-        let endPoint = actuatorEndPoint(actuator, on: false)
-        let request = NSMutableURLRequest.init(URL: NSURL.init(string: endPoint)!)
-        request.HTTPMethod = "POST"
-        request.HTTPBody = "{}".dataUsingEncoding(NSUTF8StringEncoding)
-        
-        SmappeeRequest(urlRequest: request, controller: self, completion: completion)
+        sendTurnOffRequest(actuator, duration: .Indefinitely, completion: completion)
     }
     
+    public func sendTurnOffRequest(actuator: Actuator, duration: SmappeeActuatorDuration, completion: (SmappeeRequestResult) -> Void) {
+        sendActuatorRequest(actuator, on: false, duration: .Indefinitely, completion: completion)
+    }
     
-    
+    public func sendActuatorRequest(actuator: Actuator, on: Bool, duration: SmappeeActuatorDuration, completion: (SmappeeRequestResult) -> Void) {
+        let endPoint = actuatorEndPoint(actuator, on: on)
+        let request = NSMutableURLRequest.init(URL: NSURL.init(string: endPoint)!)
+        request.HTTPMethod = "POST"
+        let durationString: String
+        switch duration {
+        case .Indefinitely:
+            durationString = ""
+        default:
+            durationString = "\"duration\": \(duration.rawValue)"
+        }
+        request.HTTPBody = "{\(durationString)}".dataUsingEncoding(NSUTF8StringEncoding)
+        SmappeeRequest(urlRequest: request, controller: self, completion: completion)
+    }
 }

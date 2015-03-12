@@ -188,7 +188,7 @@ class ViewController: UIViewController, SmappeControllerDelegate, LoginViewContr
     
     
     func actuatorOn(actuator: Actuator) {
-        smappeeController.sendTurnOnRequest(actuator) { result in }
+        smappeeController.sendTurnOnRequest(actuator, duration: .FiveMinutes) { result in }
     }
     
     func actuatorOff(actuator: Actuator) {
