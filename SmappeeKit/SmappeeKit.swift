@@ -578,7 +578,7 @@ public class SmappeeController {
     }
 
     func sendTurnOnRequest(actuator: Actuator, duration: SmappeeActuatorDuration, completion: (SmappeeRequestResult) -> Void) {
-        sendActuatorRequest(actuator, on: true, duration: .Indefinitely, completion: completion)
+        sendActuatorRequest(actuator, on: true, duration: duration, completion: completion)
     }
     
     func sendTurnOffRequest(actuator: Actuator, completion: (SmappeeRequestResult) -> Void) {
@@ -586,7 +586,7 @@ public class SmappeeController {
     }
     
     public func sendTurnOffRequest(actuator: Actuator, duration: SmappeeActuatorDuration, completion: (SmappeeRequestResult) -> Void) {
-        sendActuatorRequest(actuator, on: false, duration: .Indefinitely, completion: completion)
+        sendActuatorRequest(actuator, on: false, duration: duration, completion: completion)
     }
     
     public func sendActuatorRequest(actuator: Actuator, on: Bool, duration: SmappeeActuatorDuration, completion: (SmappeeRequestResult) -> Void) {
