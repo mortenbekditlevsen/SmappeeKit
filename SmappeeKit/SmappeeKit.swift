@@ -10,6 +10,20 @@ import Foundation
 import SwiftyJSON
 import LlamaKit
 
+public func mapOrFail<T,U,E> (array: [T], transform: (T) -> Result<U,E>) -> Result<[U],E> {
+    var result = [U]()
+    for element in array {
+        switch transform(element) {
+        case .Success(let box):
+            result.append(box.unbox)
+        case .Failure(let box):
+            return failure(box.unbox)
+        }
+    }
+    return success(result)
+}
+
+
 /// Login State for the Smappee client
 ///
 /// - ``LoggedIn`` - In this state the client has an access token and a refresh token. The tokens may be expired.
@@ -78,6 +92,19 @@ struct Appliance {
     let id: Int
     let name: String
     let type: String
+}
+
+struct ApplianceEvent {
+    let appliance: Appliance
+    let activePower: Double
+    let timestamp: NSDate
+}
+
+struct Consumption {
+    let consumption: Double
+    let alwaysOn: Double
+    let timestamp: NSDate
+    let solar: Double
 }
 
 
@@ -243,7 +270,9 @@ class SmappeeRequest {
                 }
             }
             else if let error = error {
-                completion(.Failure(error.description))
+                completion(.AccessTokenExpired)
+//
+//                completion(.Failure(error.description))
             }
             else {
                 completion(.Failure("Internal error - response is not a HTTP response"))
@@ -282,10 +311,10 @@ class SmappeeController {
         return "https://app1pub.smappee.net/dev/v1/servicelocation/\(serviceLocation.id)/consumption?aggregation=\(aggregation.rawValue)&from=\(fromMS)&to=\(toMS)"
     }
     
-    private func eventsEndPoint(serviceLocation: ServiceLocation, appliances: Array<Int>, maxNumber: Int, from: NSDate, to: NSDate) -> String {
+    private func eventsEndPoint(serviceLocation: ServiceLocation, appliances: Array<Appliance>, maxNumber: Int, from: NSDate, to: NSDate) -> String {
         let fromMS : Int = Int(from.timeIntervalSince1970 * 1000)
         let toMS : Int = Int(to.timeIntervalSince1970 * 1000)
-        let applianceString = appliances.map({appliance in "applianceId=\(appliance)&"})
+        let applianceString = appliances.reduce("", combine: {$0 + "applianceId=\($1.id)&"})
         
         return "https://app1pub.smappee.net/dev/v1/servicelocation/\(serviceLocation.id)/events?\(applianceString)maxNumber=\(maxNumber)&from=\(fromMS)&to=\(toMS)"
     }
@@ -372,31 +401,67 @@ class SmappeeController {
         loginState = .LoggedOut
     }
     
-    // MARK: API Methods
+    // MARK: JSON Parsing
     
-    func parseServiceLocations(json: JSON, completion: (Result<[ServiceLocation], String>) -> Void) {
-        var serviceLocations: [ServiceLocation] = []
-        var parseError = false
-        for (index, location) in json["serviceLocations"] {
-            if let id = location["serviceLocationId"].int,
-                name = location["name"].string {
-                    serviceLocations.append(ServiceLocation(id: id, name: name))
+    private func parseServiceLocations(json: JSON, completion: (Result<[ServiceLocation], String>) -> Void) {
+        let serviceLocations = mapOrFail(json["serviceLocations"].arrayValue) {
+            (json: JSON) -> (Result<ServiceLocation, String>) in
+            
+            if let
+                id = json["serviceLocationId"].int,
+                name = json["name"].string {
+                    return success(ServiceLocation(id: id, name: name))
             }
             else {
-                parseError = true
-                break
+                return failure("Error parsing service locations from JSON response")
             }
         }
-        
-        if parseError {
-            completion(failure("Error parsing service locations from JSON response"))
-        }
-        else {
-            completion(success(serviceLocations))
-        }
+        completion(serviceLocations)
     }
     
-    func parseServiceLocationInfo(json: JSON, completion: ServiceLocationInfoRequestResult -> Void) {
+    private func parseEvents(json: JSON, appliances: [Int: Appliance], completion: Result<[ApplianceEvent], String> -> Void) {
+        
+        let events = mapOrFail(json.arrayValue) {
+            (json: JSON) -> (Result<ApplianceEvent, String>) in
+            
+            if let
+                id = json["applianceId"].int,
+                activePower = json["activePower"].double,
+                timestamp = json["timestamp"].double,
+                appliance = appliances[id] {
+                    let date = NSDate(timeIntervalSince1970: timestamp/1000.0)
+                    return success(ApplianceEvent(appliance: appliance, activePower: activePower, timestamp: date))
+            }
+            else {
+                return failure("Error parsing events from JSON response")
+            }
+        }
+        completion(events)
+    }
+    
+    private func parseConsumptions(json: JSON, completion: Result<[Consumption], String> -> Void) {
+        
+        let consumptions = mapOrFail(json["consumptions"].arrayValue) {
+            (json: JSON) -> (Result<Consumption, String>) in
+            
+            if let
+                consumption = json["consumption"].double,
+                alwaysOn = json["alwaysOn"].double,
+                timestamp = json["timestamp"].double,
+                solar = json["solar"].double
+            {
+                    let date = NSDate(timeIntervalSince1970: timestamp/1000.0)
+                return success(Consumption(consumption: consumption, alwaysOn: alwaysOn, timestamp: date, solar: solar))
+            }
+            else {
+                return failure("Error parsing consumption entries from JSON response")
+            }
+        }
+        completion(consumptions)
+    }
+
+    
+    private func parseServiceLocationInfo(json: JSON, completion: ServiceLocationInfoRequestResult -> Void) {
         var parseError = false
         var serviceLocationInfo : ServiceLocationInfo?
         
@@ -455,6 +520,7 @@ class SmappeeController {
         
     }
     
+    // MARK: API Methods
     
     func sendServiceLocationRequest(completion: (Result<[ServiceLocation], String>) -> Void) {
         let request = NSURLRequest.init(URL: NSURL.init(string: serviceLocationEndPoint)!)
@@ -471,16 +537,26 @@ class SmappeeController {
         }
     }
     
-    func sendConsumptionRequest(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation, completion: (SmappeeRequestResult) -> Void) {
+    func sendConsumptionRequest(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation, completion: Result<[Consumption], String> -> Void) {
         let endPoint = consumptionEndPoint(serviceLocation, from: from, to: to, aggregation: aggregation)
         let request = NSURLRequest.init(URL: NSURL.init(string: endPoint)!)
-        SmappeeRequest(urlRequest: request, controller: self, completion: completion)
+        SmappeeRequest(urlRequest: request, controller: self) { r in
+            r.flatMap(self.parseConsumptions, completion: completion)
+        }
     }
     
-    func sendEventsRequest(serviceLocation: ServiceLocation, appliances: Array<Int>, maxNumber: Int, from: NSDate, to: NSDate, completion: (SmappeeRequestResult) -> Void) {
+    func sendEventsRequest(serviceLocation: ServiceLocation, appliances: [Appliance], maxNumber: Int, from: NSDate, to: NSDate, completion: Result<[ApplianceEvent], String> -> Void) {
+        // Convert appliances array to a dictionary from the id to the appliance
+        let applianceDict : [Int: Appliance] = appliances.reduce([:]) { (var dict, appliance) in
+            dict[appliance.id] = appliance
+            return dict
+        }
+
         let endPoint = eventsEndPoint(serviceLocation, appliances: appliances, maxNumber: maxNumber, from: from, to: to)
         let request = NSURLRequest.init(URL: NSURL.init(string: endPoint)!)
-        SmappeeRequest(urlRequest: request, controller: self, completion: completion)
+        SmappeeRequest(urlRequest: request, controller: self) { r in
+            r.flatMap({self.parseEvents($0, appliances: applianceDict, completion: $1)}, completion: completion)
+        }
     }
     
     
