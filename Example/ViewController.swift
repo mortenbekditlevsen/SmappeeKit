@@ -122,7 +122,7 @@ class ViewController: UIViewController, SmappeControllerDelegate, LoginViewContr
         }
     }
 
-    func getServiceLocationInfo(completion: (Result<ServiceLocationInfo, String>) -> Void) {
+    func getServiceLocationInfo(completion: ServiceLocationInfoRequestResult -> Void) {
         if let locationInfo = self.serviceLocationInfo {
             completion(success(locationInfo))
         }
@@ -144,7 +144,7 @@ class ViewController: UIViewController, SmappeControllerDelegate, LoginViewContr
         }
     }
     
-    func getEventsFromInfo(info: ServiceLocationInfo, completion: Result<[ApplianceEvent], String> -> Void) {
+    func getEventsFromInfo(info: ServiceLocationInfo, completion: EventsRequestResult -> Void) {
         self.smappeeController.sendEventsRequest(info.serviceLocation, appliances: info.appliances.filter({$0.name == "Nespresso"}), maxNumber: 10, from: NSDate(timeIntervalSinceNow: -3600*24), to: NSDate()) { r in
             completion(r)
         }
@@ -166,7 +166,7 @@ class ViewController: UIViewController, SmappeControllerDelegate, LoginViewContr
         }
     }
     
-    func getConsumptionFromInfo(info: ServiceLocationInfo, completion: Result<[Consumption], String> -> Void) {
+    func getConsumptionFromInfo(info: ServiceLocationInfo, completion: ConsumptionRequestResult -> Void) {
         self.smappeeController.sendConsumptionRequest(info.serviceLocation, from: NSDate(timeIntervalSinceNow: -3600*24*100), to: NSDate(), aggregation: .Monthly) {
             r in
             completion(r)
@@ -190,11 +190,12 @@ class ViewController: UIViewController, SmappeControllerDelegate, LoginViewContr
     }
     
     func actuatorOn(actuator: Actuator) {
-        smappeeController.sendTurnOnRequest(actuator, duration: .FiveMinutes) { result in }
+        smappeeController.💡(actuator)
     }
     
     func actuatorOff(actuator: Actuator) {
-        smappeeController.sendTurnOffRequest(actuator) { result in }
+        
+        smappeeController.sendTurnOffRequest(actuator)
     }
 
 

@@ -1,5 +1,5 @@
 //
-//  SmappeeKit.swift
+//  SmappeeController.swift
 //  SmappeeKit
 //
 //  Created by Morten Bek Ditlevsen on 26/02/15.
@@ -11,6 +11,8 @@ import LlamaKit
 
 public typealias ServiceLocationRequestResult = Result<[ServiceLocation], String>
 public typealias ServiceLocationInfoRequestResult = Result<ServiceLocationInfo, String>
+public typealias EventsRequestResult = Result<[ApplianceEvent], String>
+public typealias ConsumptionRequestResult = Result<[Consumption], String>
 public typealias SmappeeCredentialsResult = Result<(username: String, password: String), String>
 
 // Delegate protocol for supplying login credentials
@@ -26,22 +28,6 @@ public func smappeeLoginSuccess (username: String, password: String) -> SmappeeC
 public func smappeeLoginFailure (errorMessage: String) -> SmappeeCredentialsResult {
     return .Failure(Box(errorMessage))
 }
-
-
-// TODO: Move to utility file
-public func mapOrFail<T,U,E> (array: [T], transform: (T) -> Result<U,E>) -> Result<[U],E> {
-    var result = [U]()
-    for element in array {
-        switch transform(element) {
-        case .Success(let box):
-            result.append(box.unbox)
-        case .Failure(let box):
-            return failure(box.unbox)
-        }
-    }
-    return success(result)
-}
-
 
 /// Login State for the Smappee client
 ///
@@ -62,8 +48,6 @@ public enum SmappeeLoginState: Printable {
         }
     }
 }
-
-
 
 
 public class SmappeeController {
@@ -170,7 +154,7 @@ public class SmappeeController {
         }
     }
     
-    public func sendConsumptionRequest(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation, completion: Result<[Consumption], String> -> Void) {
+    public func sendConsumptionRequest(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation, completion: ConsumptionRequestResult -> Void) {
         let endPoint = consumptionEndPoint(serviceLocation, from, to, aggregation)
         let request = NSURLRequest.init(URL: NSURL.init(string: endPoint)!)
         SmappeeRequest(urlRequest: request, controller: self) { r in
@@ -178,7 +162,7 @@ public class SmappeeController {
         }
     }
     
-    public func sendEventsRequest(serviceLocation: ServiceLocation, appliances: [Appliance], maxNumber: Int, from: NSDate, to: NSDate, completion: Result<[ApplianceEvent], String> -> Void) {
+    public func sendEventsRequest(serviceLocation: ServiceLocation, appliances: [Appliance], maxNumber: Int, from: NSDate, to: NSDate, completion: EventsRequestResult -> Void) {
         // Convert appliances array to a dictionary from the id to the appliance
         let applianceDict : [Int: Appliance] = appliances.reduce([:]) { (var dict, appliance) in
             dict[appliance.id] = appliance
@@ -192,15 +176,19 @@ public class SmappeeController {
         }
     }
     
-    public func sendTurnOnRequest(actuator: Actuator, duration: SmappeeActuatorDuration = .Indefinitely, completion: (Result<Void, String>) -> Void) {
+    public func 💡(actuator: Actuator) {
+        sendTurnOnRequest(actuator, completion: {r in })
+    }
+    
+    public func sendTurnOnRequest(actuator: Actuator, duration: SmappeeActuatorDuration = .Indefinitely, completion: (Result<Void, String>) -> Void = { result in }) {
         sendActuatorRequest(actuator, on: true, duration: duration, completion: completion)
     }
     
-    public func sendTurnOffRequest(actuator: Actuator, duration: SmappeeActuatorDuration = .Indefinitely, completion: (Result<Void, String>) -> Void) {
+    public func sendTurnOffRequest(actuator: Actuator, duration: SmappeeActuatorDuration = .Indefinitely, completion: (Result<Void, String>) -> Void = { result in }) {
         sendActuatorRequest(actuator, on: false, duration: duration, completion: completion)
     }
     
-    public func sendActuatorRequest(actuator: Actuator, on: Bool, duration: SmappeeActuatorDuration, completion: (Result<Void, String>) -> Void) {
+    public func sendActuatorRequest(actuator: Actuator, on: Bool, duration: SmappeeActuatorDuration, completion: (Result<Void, String>) -> Void = { result in }) {
         let endPoint = actuatorEndPoint(actuator, on)
         let request = NSMutableURLRequest.init(URL: NSURL.init(string: endPoint)!)
         let durationString: String
@@ -223,6 +211,7 @@ public class SmappeeController {
         }
     }
 }
+
 
 
 

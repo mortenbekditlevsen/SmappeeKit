@@ -28,7 +28,7 @@ func parseServiceLocations(json: JSON, completion: (Result<[ServiceLocation], St
 }
 
 
-func parseEvents(json: JSON, appliances: [Int: Appliance], completion: Result<[ApplianceEvent], String> -> Void) {
+func parseEvents(json: JSON, appliances: [Int: Appliance], completion: EventsRequestResult -> Void) {
     
     let events = mapOrFail(json.arrayValue) {
         (json: JSON) -> (Result<ApplianceEvent, String>) in
@@ -49,7 +49,7 @@ func parseEvents(json: JSON, appliances: [Int: Appliance], completion: Result<[A
 }
 
 
-func parseConsumptions(json: JSON, completion: Result<[Consumption], String> -> Void) {
+func parseConsumptions(json: JSON, completion: ConsumptionRequestResult -> Void) {
     
     let consumptions = mapOrFail(json["consumptions"].arrayValue) {
         (json: JSON) -> (Result<Consumption, String>) in
