@@ -13,6 +13,7 @@ class ViewController: UIViewController, SmappeControllerDelegate, LoginViewContr
 
     let smappeeController: SmappeeController
     var serviceLocation: ServiceLocation?
+    var serviceLocationInfo: ServiceLocationInfo?
     var actuator: Actuator?
     
     var loginCompletion: ((SmappeeCredentialsResult) -> Void)?
@@ -82,7 +83,7 @@ class ViewController: UIViewController, SmappeControllerDelegate, LoginViewContr
     
     // MARK: IB Actions
     @IBAction func serviceLocationsAction(sender: AnyObject) {
-        getServiceLocations()
+        getActuator()
     }
     
     @IBAction func actuatorOneOn(sender: AnyObject) {
@@ -106,22 +107,45 @@ class ViewController: UIViewController, SmappeControllerDelegate, LoginViewContr
     
     // MARK: SmappeeKit calls
 
-    
-    func getServiceLocations() {
-        smappeeController.sendServiceLocationRequest { r in
-            r.flatMap({ valueOrError($0.first, "No service locations found")
-            }).flatMap(self.smappeeController.sendServiceLocationInfoRequest) { r in
-                switch r {
-                case .Success(let box):
-                    let info = box.unbox
-                    self.actuator = info.actuators.first
-                    println("Success")
-                case .Failure(let box):
-                    let errorMessage = box.unbox
-                    println(errorMessage)
-                }
+    func getFirstServiceLocation(completion: (Result<ServiceLocation, String>) -> Void) {
+        if let location = self.serviceLocation {
+            completion(success(location))
+        }
+        else {
+            smappeeController.sendServiceLocationRequest { r in
+                let first = r.flatMap({ valueOrError($0.first, "No service locations found")})
+                self.serviceLocation = first.value
+                completion(first)
                 self.updateButtonStates()
             }
+        }
+    }
+
+    func getServiceLocationInfo(completion: (Result<ServiceLocationInfo, String>) -> Void) {
+        if let locationInfo = self.serviceLocationInfo {
+            completion(success(locationInfo))
+        }
+        else {
+            getFirstServiceLocation { r in
+                r.flatMap(self.smappeeController.sendServiceLocationInfoRequest) { r in
+                    self.serviceLocationInfo = r.value
+                    completion(r)
+                }
+            }
+        }
+    }
+
+
+    func getActuator() {
+        getServiceLocationInfo { r in
+            self.actuator = r.value?.actuators.first
+            self.updateButtonStates()
+        }
+    }
+    
+    func getEventsFromInfo(info: ServiceLocationInfo, completion: Result<[ApplianceEvent], String> -> Void) {
+        self.smappeeController.sendEventsRequest(info.serviceLocation, appliances: info.appliances.filter({$0.name == "Nespresso"}), maxNumber: 10, from: NSDate(timeIntervalSinceNow: -3600*24), to: NSDate()) { r in
+            completion(r)
         }
     }
     
@@ -129,29 +153,22 @@ class ViewController: UIViewController, SmappeControllerDelegate, LoginViewContr
         let formatter = NSDateFormatter()
         formatter.dateStyle = .ShortStyle
         formatter.timeStyle = .ShortStyle
-        smappeeController.sendServiceLocationRequest { r in
-            r.flatMap({ valueOrError($0.first, "No service locations found")
-            }).flatMap(self.smappeeController.sendServiceLocationInfoRequest) { r in
-                switch r {
-                case .Success(let box):
-                    let info = box.unbox
-                    self.smappeeController.sendEventsRequest(info.serviceLocation, appliances: info.appliances.filter({$0.name == "Nespresso"}), maxNumber: 10, from: NSDate(timeIntervalSinceNow: -3600*24), to: NSDate()) { r in
-                        if let events = r.value {
-                            for event in events {
-                                let date = formatter.stringFromDate(event.timestamp)
-                                println("Event: \(event.appliance.name) - \(event.activePower) - \(date)")
-                            }
-                        }
-                        }
-                    
-                    self.actuator = info.actuators.first
-                    println("Success")
-                case .Failure(let box):
-                    let errorMessage = box.unbox
-                    println(errorMessage)
+        getServiceLocationInfo { r in
+            r.flatMap(self.getEventsFromInfo) { r in
+                if let events = r.value {
+                    for event in events {
+                        let date = formatter.stringFromDate(event.timestamp)
+                        println("Event: \(event.appliance.name) - \(event.activePower) - \(date)")
+                    }
                 }
-                self.updateButtonStates()
             }
+        }
+    }
+    
+    func getConsumptionFromInfo(info: ServiceLocationInfo, completion: Result<[Consumption], String> -> Void) {
+        self.smappeeController.sendConsumptionRequest(info.serviceLocation, from: NSDate(timeIntervalSinceNow: -3600*24*100), to: NSDate(), aggregation: .Monthly) {
+            r in
+            completion(r)
         }
     }
 
@@ -159,33 +176,17 @@ class ViewController: UIViewController, SmappeControllerDelegate, LoginViewContr
         let formatter = NSDateFormatter()
         formatter.dateStyle = .ShortStyle
         formatter.timeStyle = .ShortStyle
-        smappeeController.sendServiceLocationRequest { r in
-            r.flatMap({ valueOrError($0.first, "No service locations found")
-            }).flatMap(self.smappeeController.sendServiceLocationInfoRequest) { r in
-                switch r {
-                case .Success(let box):
-                    let info = box.unbox
-                    self.smappeeController.sendConsumptionRequest(info.serviceLocation, from: NSDate(timeIntervalSinceNow: -3600*24*100), to: NSDate(), aggregation: .Monthly) { r in
-                        if let consumptions = r.value {
-                            for consumption in consumptions {
-                                let date = formatter.stringFromDate(consumption.timestamp)
-                                println("Event: \(consumption.consumption) - \(consumption.alwaysOn) - \(date)")
-                            }
-                        }
+        getServiceLocationInfo { r in
+            r.flatMap(self.getConsumptionFromInfo) { r in
+                if let consumptions = r.value {
+                    for consumption in consumptions {
+                        let date = formatter.stringFromDate(consumption.timestamp)
+                        println("Event: \(consumption.consumption) - \(consumption.alwaysOn) - \(date)")
                     }
-                    
-                    self.actuator = info.actuators.first
-                    println("Success")
-                case .Failure(let box):
-                    let errorMessage = box.unbox
-                    println(errorMessage)
                 }
-                self.updateButtonStates()
             }
         }
     }
-
-    
     
     func actuatorOn(actuator: Actuator) {
         smappeeController.sendTurnOnRequest(actuator, duration: .FiveMinutes) { result in }
