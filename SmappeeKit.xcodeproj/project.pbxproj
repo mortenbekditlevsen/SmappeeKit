@@ -20,12 +20,26 @@
 		A93AB0111AAC526F0044FEC8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A93AB0101AAC526F0044FEC8 /* Images.xcassets */; };
 		A93AB0141AAC526F0044FEC8 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = A93AB0121AAC526F0044FEC8 /* LaunchScreen.xib */; };
 		A93AB02A1AAC540B0044FEC8 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AB0291AAC540B0044FEC8 /* LoginViewController.swift */; };
-		A93AB02C1AAC57B20044FEC8 /* SmappeeKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AAF9F1AAC47D70044FEC8 /* SmappeeKit.swift */; };
+		A9FDCF8F1AB43C5900BE6717 /* SmappeeRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF8E1AB43C5900BE6717 /* SmappeeRequest.swift */; };
+		A9FDCF911AB43D7D00BE6717 /* SmappeeTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF901AB43D7D00BE6717 /* SmappeeTypes.swift */; };
+		A9FDCF941AB43E0A00BE6717 /* SmappeeTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF901AB43D7D00BE6717 /* SmappeeTypes.swift */; };
+		A9FDCF951AB43E0C00BE6717 /* SmappeeRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF8E1AB43C5900BE6717 /* SmappeeRequest.swift */; };
+		A9FDCF971AB43E8400BE6717 /* SmappeeJSONParsing.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF961AB43E8400BE6717 /* SmappeeJSONParsing.swift */; };
+		A9FDCF981AB43E8400BE6717 /* SmappeeJSONParsing.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF961AB43E8400BE6717 /* SmappeeJSONParsing.swift */; };
+		A9FDCF9B1AB43EE200BE6717 /* SmappeeAPIEndpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF9A1AB43EE200BE6717 /* SmappeeAPIEndpoints.swift */; };
+		A9FDCF9C1AB43EE200BE6717 /* SmappeeAPIEndpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF9A1AB43EE200BE6717 /* SmappeeAPIEndpoints.swift */; };
 		C08BDA1D7D39978EB873237D /* Pods.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BCDDB8D1B47C48BCE4A0FC61 /* Pods.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		A93AAF901AAC479F0044FEC8 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A93AAF7A1AAC479F0044FEC8 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A93AAF821AAC479F0044FEC8;
+			remoteInfo = SmappeeKit;
+		};
+		A9FDCF9E1AB43F5700BE6717 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A93AAF7A1AAC479F0044FEC8 /* Project object */;
 			proxyType = 1;
@@ -52,6 +66,10 @@
 		A93AB0101AAC526F0044FEC8 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		A93AB0131AAC526F0044FEC8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
 		A93AB0291AAC540B0044FEC8 /* LoginViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
+		A9FDCF8E1AB43C5900BE6717 /* SmappeeRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SmappeeRequest.swift; sourceTree = "<group>"; };
+		A9FDCF901AB43D7D00BE6717 /* SmappeeTypes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SmappeeTypes.swift; sourceTree = "<group>"; };
+		A9FDCF961AB43E8400BE6717 /* SmappeeJSONParsing.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SmappeeJSONParsing.swift; sourceTree = "<group>"; };
+		A9FDCF9A1AB43EE200BE6717 /* SmappeeAPIEndpoints.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SmappeeAPIEndpoints.swift; sourceTree = "<group>"; };
 		BCDDB8D1B47C48BCE4A0FC61 /* Pods.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -119,6 +137,10 @@
 			children = (
 				A93AAF881AAC479F0044FEC8 /* SmappeeKit.h */,
 				A93AAF9F1AAC47D70044FEC8 /* SmappeeKit.swift */,
+				A9FDCF8E1AB43C5900BE6717 /* SmappeeRequest.swift */,
+				A9FDCF901AB43D7D00BE6717 /* SmappeeTypes.swift */,
+				A9FDCF961AB43E8400BE6717 /* SmappeeJSONParsing.swift */,
+				A9FDCF9A1AB43EE200BE6717 /* SmappeeAPIEndpoints.swift */,
 				A93AAF861AAC479F0044FEC8 /* Supporting Files */,
 			);
 			path = SmappeeKit;
@@ -250,6 +272,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				A9FDCF9F1AB43F5700BE6717 /* PBXTargetDependency */,
 			);
 			name = Example;
 			productName = Example;
@@ -466,7 +489,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A9FDCF971AB43E8400BE6717 /* SmappeeJSONParsing.swift in Sources */,
 				A93AAFA01AAC47D70044FEC8 /* SmappeeKit.swift in Sources */,
+				A9FDCF9B1AB43EE200BE6717 /* SmappeeAPIEndpoints.swift in Sources */,
+				A9FDCF911AB43D7D00BE6717 /* SmappeeTypes.swift in Sources */,
+				A9FDCF8F1AB43C5900BE6717 /* SmappeeRequest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -474,8 +501,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A9FDCF981AB43E8400BE6717 /* SmappeeJSONParsing.swift in Sources */,
 				A93AAFA11AAC47D70044FEC8 /* SmappeeKit.swift in Sources */,
+				A9FDCF941AB43E0A00BE6717 /* SmappeeTypes.swift in Sources */,
+				A9FDCF9C1AB43EE200BE6717 /* SmappeeAPIEndpoints.swift in Sources */,
 				A93AAF961AAC479F0044FEC8 /* SmappeeKitTests.swift in Sources */,
+				A9FDCF951AB43E0C00BE6717 /* SmappeeRequest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -485,7 +516,6 @@
 			files = (
 				A93AB02A1AAC540B0044FEC8 /* LoginViewController.swift in Sources */,
 				A93AB00C1AAC526F0044FEC8 /* ViewController.swift in Sources */,
-				A93AB02C1AAC57B20044FEC8 /* SmappeeKit.swift in Sources */,
 				A93AB00A1AAC526F0044FEC8 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -497,6 +527,11 @@
 			isa = PBXTargetDependency;
 			target = A93AAF821AAC479F0044FEC8 /* SmappeeKit */;
 			targetProxy = A93AAF901AAC479F0044FEC8 /* PBXContainerItemProxy */;
+		};
+		A9FDCF9F1AB43F5700BE6717 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A93AAF821AAC479F0044FEC8 /* SmappeeKit */;
+			targetProxy = A9FDCF9E1AB43F5700BE6717 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
