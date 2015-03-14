@@ -311,37 +311,27 @@ public enum SmappeeActuatorDuration: Int {
 
 public class SmappeeController {
     
-    // MARK: API endpoints
-    
-    private let serviceLocationEndPoint = "https://app1pub.smappee.net/dev/v1/servicelocation"
-    
-    private func serviceLocationInfoEndPoint(serviceLocation: ServiceLocation) -> String {
-        return "https://app1pub.smappee.net/dev/v1/servicelocation/\(serviceLocation.id)/info"
-    }
-    
-    private func consumptionEndPoint(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation) -> String {
-        let fromMS : Int = Int(from.timeIntervalSince1970 * 1000)
-        let toMS : Int = Int(to.timeIntervalSince1970 * 1000)
-        return "https://app1pub.smappee.net/dev/v1/servicelocation/\(serviceLocation.id)/consumption?aggregation=\(aggregation.rawValue)&from=\(fromMS)&to=\(toMS)"
-    }
-    
-    private func eventsEndPoint(serviceLocation: ServiceLocation, appliances: Array<Appliance>, maxNumber: Int, from: NSDate, to: NSDate) -> String {
-        let fromMS : Int = Int(from.timeIntervalSince1970 * 1000)
-        let toMS : Int = Int(to.timeIntervalSince1970 * 1000)
-        let applianceString = appliances.reduce("", combine: {$0 + "applianceId=\($1.id)&"})
-        
-        return "https://app1pub.smappee.net/dev/v1/servicelocation/\(serviceLocation.id)/events?\(applianceString)maxNumber=\(maxNumber)&from=\(fromMS)&to=\(toMS)"
-    }
-    
-    private func actuatorEndPoint (actuator: Actuator, on: Bool) -> String {
-        let action = on ? "on" : "off"
-        return "https://app1pub.smappee.net/dev/v1/servicelocation/\(actuator.serviceLocation.id)/actuator/\(actuator.id)/\(action)"
-    }
-    
     // MARK: Constants
-    
     private static let ACCESS_TOKEN_KEY = "SMAPPEEKIT_USERDEFAULTS_ACCESS_TOKEN_KEY"
     private static let REFRESH_TOKEN_KEY = "SMAPPEEKIT_USERDEFAULTS_REFRESH_TOKEN_KEY"
+
+    // MARK: Load and save tokens to NSUserDefaults
+    private class func loadTokens() -> (accessToken: String?, refreshToken: String?) {
+        let accessToken = NSUserDefaults.standardUserDefaults().stringForKey(ACCESS_TOKEN_KEY)
+        let refreshToken = NSUserDefaults.standardUserDefaults().stringForKey(REFRESH_TOKEN_KEY)
+        return (accessToken, refreshToken)
+    }
+    
+    private class func saveTokens(accessToken: String? = nil, refreshToken: String? = nil) {
+        for keyValue in [(accessToken, ACCESS_TOKEN_KEY), (refreshToken, REFRESH_TOKEN_KEY)] {
+            if let key = keyValue.0 {
+                NSUserDefaults.standardUserDefaults().setObject(key, forKey: keyValue.1)
+            }
+            else {
+                NSUserDefaults.standardUserDefaults().removeObjectForKey(keyValue.1)
+            }
+        }
+    }
     
     // MARK: Members
     
@@ -356,37 +346,27 @@ public class SmappeeController {
                 return
             }
             switch loginState {
-            case .LoggedIn(let tokens):
-                NSUserDefaults.standardUserDefaults().setObject(tokens.accessToken, forKey: SmappeeController.ACCESS_TOKEN_KEY)
-                NSUserDefaults.standardUserDefaults().setObject(tokens.refreshToken, forKey: SmappeeController.REFRESH_TOKEN_KEY)
+            case .LoggedIn(let (accessToken, refreshToken)):
+                SmappeeController.saveTokens(accessToken: accessToken, refreshToken: refreshToken)
             case .AccessTokenExpired(let refreshToken):
-                NSUserDefaults.standardUserDefaults().removeObjectForKey(SmappeeController.ACCESS_TOKEN_KEY)
-                NSUserDefaults.standardUserDefaults().setObject(refreshToken, forKey: SmappeeController.REFRESH_TOKEN_KEY)
+                SmappeeController.saveTokens(refreshToken: refreshToken)
             case .LoggedOut:
-                NSUserDefaults.standardUserDefaults().removeObjectForKey(SmappeeController.ACCESS_TOKEN_KEY)
-                NSUserDefaults.standardUserDefaults().removeObjectForKey(SmappeeController.REFRESH_TOKEN_KEY)
+                SmappeeController.saveTokens()
             }
         }
     }
     
     // MARK: Initializers
     
-    convenience init(clientId: String, clientSecret: String) {
-        self.init(clientId: clientId, clientSecret: clientSecret, saveTokens: true)
-    }
-    
-    convenience init(clientId: String, clientSecret: String, saveTokens: Bool) {
+    convenience init(clientId: String, clientSecret: String, saveTokens: Bool = true) {
         var state = SmappeeLoginState.LoggedOut
         if (saveTokens) {
-            let accessToken = NSUserDefaults.standardUserDefaults().stringForKey(SmappeeController.ACCESS_TOKEN_KEY)
-            let refreshToken = NSUserDefaults.standardUserDefaults().stringForKey(SmappeeController.REFRESH_TOKEN_KEY)
-            if let refreshToken = refreshToken {
-                if let accessToken = accessToken {
-                    state = .LoggedIn(accessToken: accessToken, refreshToken: refreshToken)
-                }
-                else {
-                    state = .AccessTokenExpired(refreshToken)
-                }
+            let (accessToken, refreshToken) = SmappeeController.loadTokens()
+            if let accessToken = accessToken, refreshToken = refreshToken {
+                state = .LoggedIn(accessToken: accessToken, refreshToken: refreshToken)
+            }
+            else if let refreshToken = refreshToken {
+                state = .AccessTokenExpired(refreshToken)
             }
         }
         self.init(clientId: clientId, clientSecret: clientSecret, loginState: state)
@@ -401,7 +381,7 @@ public class SmappeeController {
     
     /// :returns: *true* if ``loginState`` is ``.LoggedIn`` or ``.AccessTokenExpired``. In both cases we assume that we have, or can get a valid access token
     
-    func loggedIn() -> Bool {
+    public func loggedIn() -> Bool {
         switch loginState {
         case .LoggedOut:
             return false
@@ -411,135 +391,17 @@ public class SmappeeController {
     }
     
     /// This implicitly clears access and refresh tokens
-    func logOut() {
+    public func logOut() {
         loginState = .LoggedOut
     }
     
-    // MARK: JSON Parsing
-    
-    private func parseServiceLocations(json: JSON, completion: (Result<[ServiceLocation], String>) -> Void) {
-        let serviceLocations = mapOrFail(json["serviceLocations"].arrayValue) {
-            (json: JSON) -> (Result<ServiceLocation, String>) in
-            
-            if let
-                id = json["serviceLocationId"].int,
-                name = json["name"].string {
-                    return success(ServiceLocation(id: id, name: name))
-            }
-            else {
-                return failure("Error parsing service locations from JSON response")
-            }
-        }
-        completion(serviceLocations)
-    }
-    
-    private func parseEvents(json: JSON, appliances: [Int: Appliance], completion: Result<[ApplianceEvent], String> -> Void) {
-        
-        let events = mapOrFail(json.arrayValue) {
-            (json: JSON) -> (Result<ApplianceEvent, String>) in
-            
-            if let
-                id = json["applianceId"].int,
-                activePower = json["activePower"].double,
-                timestamp = json["timestamp"].double,
-                appliance = appliances[id] {
-                    let date = NSDate(timeIntervalSince1970: timestamp/1000.0)
-                    return success(ApplianceEvent(appliance: appliance, activePower: activePower, timestamp: date))
-            }
-            else {
-                return failure("Error parsing events from JSON response")
-            }
-        }
-        completion(events)
-    }
-    
-    private func parseConsumptions(json: JSON, completion: Result<[Consumption], String> -> Void) {
-        
-        let consumptions = mapOrFail(json["consumptions"].arrayValue) {
-            (json: JSON) -> (Result<Consumption, String>) in
-            
-            if let
-                consumption = json["consumption"].double,
-                alwaysOn = json["alwaysOn"].double,
-                timestamp = json["timestamp"].double,
-                solar = json["solar"].double
-            {
-                    let date = NSDate(timeIntervalSince1970: timestamp/1000.0)
-                return success(Consumption(consumption: consumption, alwaysOn: alwaysOn, timestamp: date, solar: solar))
-            }
-            else {
-                return failure("Error parsing consumption entries from JSON response")
-            }
-        }
-        completion(consumptions)
-    }
-
-    
-    private func parseServiceLocationInfo(json: JSON, completion: ServiceLocationInfoRequestResult -> Void) {
-        var parseError = false
-        var serviceLocationInfo : ServiceLocationInfo?
-        
-        if let id = json["serviceLocationId"].int,
-            name = json["name"].string,
-            electricityCurrency = json["electricityCurrency"].string,
-            electricityCost = json["electricityCost"].double,
-            longitude = json["lon"].double,
-            lattitude = json["lat"].double
-        {
-            
-            var actuators: [Actuator] = []
-            var appliances: [Appliance] = []
-            
-            let serviceLocation = ServiceLocation(id: id, name: name)
-            
-            
-            
-            for (index, appliance) in json["appliances"] {
-                if let id = appliance["id"].int,
-                    name = appliance["name"].string,
-                    type = appliance["type"].string {
-                        appliances.append(Appliance(serviceLocation: serviceLocation, id: id, name: name, type: type))
-                }
-                else {
-                    parseError = true
-                    break
-                }
-            }
-            
-            for (index, actuator) in json["actuators"] {
-                if let id = actuator["id"].int,
-                    name = actuator["name"].string {
-                        actuators.append(Actuator(serviceLocation: serviceLocation, id: id, name: name))
-                }
-                else {
-                    parseError = true
-                    break
-                }
-            }
-            serviceLocationInfo = ServiceLocationInfo(serviceLocation: serviceLocation,
-                electricityCurrency: electricityCurrency,
-                electricityCost: electricityCost,
-                longitude: longitude,
-                lattitude: lattitude,
-                actuators: actuators,
-                appliances: appliances)
-        }
-        
-        if let serviceLocationInfo = serviceLocationInfo where !parseError {
-            completion(success(serviceLocationInfo))
-        }
-        else {
-            completion(failure("Error parsing service locations from JSON response"))
-        }
-        
-    }
     
     // MARK: API Methods
     
     public func sendServiceLocationRequest(completion: (Result<[ServiceLocation], String>) -> Void) {
         let request = NSURLRequest.init(URL: NSURL.init(string: serviceLocationEndPoint)!)
         SmappeeRequest(urlRequest: request, controller: self) { r in
-            r.flatMap(self.parseServiceLocations, completion: completion)
+            r.flatMap(parseServiceLocations, completion: completion)
         }
     }
     
@@ -547,15 +409,15 @@ public class SmappeeController {
         let endPoint = serviceLocationInfoEndPoint(serviceLocation)
         let request = NSURLRequest.init(URL: NSURL.init(string: endPoint)!)
         SmappeeRequest(urlRequest: request, controller: self) { r in
-            r.flatMap(self.parseServiceLocationInfo, completion: completion)
+            r.flatMap(parseServiceLocationInfo, completion: completion)
         }
     }
     
     public func sendConsumptionRequest(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation, completion: Result<[Consumption], String> -> Void) {
-        let endPoint = consumptionEndPoint(serviceLocation, from: from, to: to, aggregation: aggregation)
+        let endPoint = consumptionEndPoint(serviceLocation, from, to, aggregation)
         let request = NSURLRequest.init(URL: NSURL.init(string: endPoint)!)
         SmappeeRequest(urlRequest: request, controller: self) { r in
-            r.flatMap(self.parseConsumptions, completion: completion)
+            r.flatMap(parseConsumptions, completion: completion)
         }
     }
     
@@ -566,33 +428,192 @@ public class SmappeeController {
             return dict
         }
 
-        let endPoint = eventsEndPoint(serviceLocation, appliances: appliances, maxNumber: maxNumber, from: from, to: to)
+        let endPoint = eventsEndPoint(serviceLocation, appliances, maxNumber, from, to)
         let request = NSURLRequest.init(URL: NSURL.init(string: endPoint)!)
         SmappeeRequest(urlRequest: request, controller: self) { r in
-            r.flatMap({self.parseEvents($0, appliances: applianceDict, completion: $1)}, completion: completion)
+            r.flatMap({parseEvents($0, applianceDict, $1)}, completion: completion)
         }
     }
     
-    public func sendTurnOnRequest(actuator: Actuator, duration: SmappeeActuatorDuration = .Indefinitely, completion: (SmappeeRequestResult) -> Void) {
+    public func sendTurnOnRequest(actuator: Actuator, duration: SmappeeActuatorDuration = .Indefinitely, completion: (Result<Void, String>) -> Void) {
         sendActuatorRequest(actuator, on: true, duration: duration, completion: completion)
     }
     
-    public func sendTurnOffRequest(actuator: Actuator, duration: SmappeeActuatorDuration = .Indefinitely, completion: (SmappeeRequestResult) -> Void) {
+    public func sendTurnOffRequest(actuator: Actuator, duration: SmappeeActuatorDuration = .Indefinitely, completion: (Result<Void, String>) -> Void) {
         sendActuatorRequest(actuator, on: false, duration: duration, completion: completion)
     }
     
-    public func sendActuatorRequest(actuator: Actuator, on: Bool, duration: SmappeeActuatorDuration, completion: (SmappeeRequestResult) -> Void) {
-        let endPoint = actuatorEndPoint(actuator, on: on)
+    public func sendActuatorRequest(actuator: Actuator, on: Bool, duration: SmappeeActuatorDuration, completion: (Result<Void, String>) -> Void) {
+        let endPoint = actuatorEndPoint(actuator, on)
         let request = NSMutableURLRequest.init(URL: NSURL.init(string: endPoint)!)
-        request.HTTPMethod = "POST"
         let durationString: String
+
         switch duration {
         case .Indefinitely:
             durationString = ""
         default:
             durationString = "\"duration\": \(duration.rawValue)"
         }
+        
+        request.HTTPMethod = "POST"
         request.HTTPBody = "{\(durationString)}".dataUsingEncoding(NSUTF8StringEncoding)
-        SmappeeRequest(urlRequest: request, controller: self, completion: completion)
+        
+        // Map from a JSON Result (which is always empty) to a Void Result
+        // The map transform function takes two parameters. The first is of type JSON, and is always empty
+        // according to the docs. The second is the completion. Simply use 'map' with a transform that calls the completion with 'Void' argument
+        SmappeeRequest(urlRequest: request, controller: self) { r in
+            r.map({$1()}, completion: completion)
+        }
     }
 }
+
+// MARK: API endpoints
+
+private let serviceLocationEndPoint = "https://app1pub.smappee.net/dev/v1/servicelocation"
+
+private func serviceLocationInfoEndPoint(serviceLocation: ServiceLocation) -> String {
+    return "https://app1pub.smappee.net/dev/v1/servicelocation/\(serviceLocation.id)/info"
+}
+
+private func consumptionEndPoint(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation) -> String {
+    let fromMS : Int = Int(from.timeIntervalSince1970 * 1000)
+    let toMS : Int = Int(to.timeIntervalSince1970 * 1000)
+    return "https://app1pub.smappee.net/dev/v1/servicelocation/\(serviceLocation.id)/consumption?aggregation=\(aggregation.rawValue)&from=\(fromMS)&to=\(toMS)"
+}
+
+private func eventsEndPoint(serviceLocation: ServiceLocation, appliances: Array<Appliance>, maxNumber: Int, from: NSDate, to: NSDate) -> String {
+    let fromMS : Int = Int(from.timeIntervalSince1970 * 1000)
+    let toMS : Int = Int(to.timeIntervalSince1970 * 1000)
+    let applianceString = appliances.reduce("", combine: {$0 + "applianceId=\($1.id)&"})
+    
+    return "https://app1pub.smappee.net/dev/v1/servicelocation/\(serviceLocation.id)/events?\(applianceString)maxNumber=\(maxNumber)&from=\(fromMS)&to=\(toMS)"
+}
+
+private func actuatorEndPoint (actuator: Actuator, on: Bool) -> String {
+    let action = on ? "on" : "off"
+    return "https://app1pub.smappee.net/dev/v1/servicelocation/\(actuator.serviceLocation.id)/actuator/\(actuator.id)/\(action)"
+}
+
+
+
+// MARK: JSON Parsing
+
+private func parseServiceLocations(json: JSON, completion: (Result<[ServiceLocation], String>) -> Void) {
+    let serviceLocations = mapOrFail(json["serviceLocations"].arrayValue) {
+        (json: JSON) -> (Result<ServiceLocation, String>) in
+        
+        if let
+            id = json["serviceLocationId"].int,
+            name = json["name"].string {
+                return success(ServiceLocation(id: id, name: name))
+        }
+        else {
+            return failure("Error parsing service locations from JSON response")
+        }
+    }
+    completion(serviceLocations)
+}
+
+
+private func parseEvents(json: JSON, appliances: [Int: Appliance], completion: Result<[ApplianceEvent], String> -> Void) {
+    
+    let events = mapOrFail(json.arrayValue) {
+        (json: JSON) -> (Result<ApplianceEvent, String>) in
+        
+        if let
+            id = json["applianceId"].int,
+            activePower = json["activePower"].double,
+            timestamp = json["timestamp"].double,
+            appliance = appliances[id] {
+                let date = NSDate(timeIntervalSince1970: timestamp/1000.0)
+                return success(ApplianceEvent(appliance: appliance, activePower: activePower, timestamp: date))
+        }
+        else {
+            return failure("Error parsing events from JSON response")
+        }
+    }
+    completion(events)
+}
+
+
+private func parseConsumptions(json: JSON, completion: Result<[Consumption], String> -> Void) {
+    
+    let consumptions = mapOrFail(json["consumptions"].arrayValue) {
+        (json: JSON) -> (Result<Consumption, String>) in
+        
+        if let
+            consumption = json["consumption"].double,
+            alwaysOn = json["alwaysOn"].double,
+            timestamp = json["timestamp"].double,
+            solar = json["solar"].double
+        {
+            let date = NSDate(timeIntervalSince1970: timestamp/1000.0)
+            return success(Consumption(consumption: consumption, alwaysOn: alwaysOn, timestamp: date, solar: solar))
+        }
+        else {
+            return failure("Error parsing consumption entries from JSON response")
+        }
+    }
+    completion(consumptions)
+}
+
+
+private func parseServiceLocationInfo(json: JSON, completion: ServiceLocationInfoRequestResult -> Void) {
+    var parseError = false
+    var serviceLocationInfo : ServiceLocationInfo?
+    
+    if let id = json["serviceLocationId"].int,
+        name = json["name"].string,
+        electricityCurrency = json["electricityCurrency"].string,
+        electricityCost = json["electricityCost"].double,
+        longitude = json["lon"].double,
+        lattitude = json["lat"].double
+    {
+        
+        var actuators: [Actuator] = []
+        var appliances: [Appliance] = []
+        
+        let serviceLocation = ServiceLocation(id: id, name: name)
+        
+        
+        
+        for (index, appliance) in json["appliances"] {
+            if let id = appliance["id"].int,
+                name = appliance["name"].string,
+                type = appliance["type"].string {
+                    appliances.append(Appliance(serviceLocation: serviceLocation, id: id, name: name, type: type))
+            }
+            else {
+                parseError = true
+                break
+            }
+        }
+        
+        for (index, actuator) in json["actuators"] {
+            if let id = actuator["id"].int,
+                name = actuator["name"].string {
+                    actuators.append(Actuator(serviceLocation: serviceLocation, id: id, name: name))
+            }
+            else {
+                parseError = true
+                break
+            }
+        }
+        serviceLocationInfo = ServiceLocationInfo(serviceLocation: serviceLocation,
+            electricityCurrency: electricityCurrency,
+            electricityCost: electricityCost,
+            longitude: longitude,
+            lattitude: lattitude,
+            actuators: actuators,
+            appliances: appliances)
+    }
+    
+    if let serviceLocationInfo = serviceLocationInfo where !parseError {
+        completion(success(serviceLocationInfo))
+    }
+    else {
+        completion(failure("Error parsing service locations from JSON response"))
+    }
+}
+
+
