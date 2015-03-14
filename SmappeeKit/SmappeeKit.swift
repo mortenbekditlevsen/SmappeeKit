@@ -517,10 +517,10 @@ public class SmappeeController {
                 }
             }
             serviceLocationInfo = ServiceLocationInfo(serviceLocation: serviceLocation,
-                electricityCurrency: "",
-                electricityCost: 1,
-                longitude: 1,
-                lattitude: 1,
+                electricityCurrency: electricityCurrency,
+                electricityCost: electricityCost,
+                longitude: longitude,
+                lattitude: lattitude,
                 actuators: actuators,
                 appliances: appliances)
         }
@@ -536,14 +536,14 @@ public class SmappeeController {
     
     // MARK: API Methods
     
-    func sendServiceLocationRequest(completion: (Result<[ServiceLocation], String>) -> Void) {
+    public func sendServiceLocationRequest(completion: (Result<[ServiceLocation], String>) -> Void) {
         let request = NSURLRequest.init(URL: NSURL.init(string: serviceLocationEndPoint)!)
         SmappeeRequest(urlRequest: request, controller: self) { r in
             r.flatMap(self.parseServiceLocations, completion: completion)
         }
     }
     
-    func sendServiceLocationInfoRequest(serviceLocation: ServiceLocation, completion: ServiceLocationInfoRequestResult -> Void) {
+    public func sendServiceLocationInfoRequest(serviceLocation: ServiceLocation, completion: ServiceLocationInfoRequestResult -> Void) {
         let endPoint = serviceLocationInfoEndPoint(serviceLocation)
         let request = NSURLRequest.init(URL: NSURL.init(string: endPoint)!)
         SmappeeRequest(urlRequest: request, controller: self) { r in
@@ -551,7 +551,7 @@ public class SmappeeController {
         }
     }
     
-    func sendConsumptionRequest(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation, completion: Result<[Consumption], String> -> Void) {
+    public func sendConsumptionRequest(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation, completion: Result<[Consumption], String> -> Void) {
         let endPoint = consumptionEndPoint(serviceLocation, from: from, to: to, aggregation: aggregation)
         let request = NSURLRequest.init(URL: NSURL.init(string: endPoint)!)
         SmappeeRequest(urlRequest: request, controller: self) { r in
@@ -559,7 +559,7 @@ public class SmappeeController {
         }
     }
     
-    func sendEventsRequest(serviceLocation: ServiceLocation, appliances: [Appliance], maxNumber: Int, from: NSDate, to: NSDate, completion: Result<[ApplianceEvent], String> -> Void) {
+    public func sendEventsRequest(serviceLocation: ServiceLocation, appliances: [Appliance], maxNumber: Int, from: NSDate, to: NSDate, completion: Result<[ApplianceEvent], String> -> Void) {
         // Convert appliances array to a dictionary from the id to the appliance
         let applianceDict : [Int: Appliance] = appliances.reduce([:]) { (var dict, appliance) in
             dict[appliance.id] = appliance
@@ -573,19 +573,11 @@ public class SmappeeController {
         }
     }
     
-    func sendTurnOnRequest(actuator: Actuator, completion: (SmappeeRequestResult) -> Void) {
-        sendTurnOnRequest(actuator, duration: .Indefinitely, completion: completion)
-    }
-
-    func sendTurnOnRequest(actuator: Actuator, duration: SmappeeActuatorDuration, completion: (SmappeeRequestResult) -> Void) {
+    public func sendTurnOnRequest(actuator: Actuator, duration: SmappeeActuatorDuration = .Indefinitely, completion: (SmappeeRequestResult) -> Void) {
         sendActuatorRequest(actuator, on: true, duration: duration, completion: completion)
     }
     
-    func sendTurnOffRequest(actuator: Actuator, completion: (SmappeeRequestResult) -> Void) {
-        sendTurnOffRequest(actuator, duration: .Indefinitely, completion: completion)
-    }
-    
-    public func sendTurnOffRequest(actuator: Actuator, duration: SmappeeActuatorDuration, completion: (SmappeeRequestResult) -> Void) {
+    public func sendTurnOffRequest(actuator: Actuator, duration: SmappeeActuatorDuration = .Indefinitely, completion: (SmappeeRequestResult) -> Void) {
         sendActuatorRequest(actuator, on: false, duration: duration, completion: completion)
     }
     
