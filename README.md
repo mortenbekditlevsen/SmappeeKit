@@ -26,7 +26,7 @@ let smappeeController = SmappeeController(clientId: "MY_CLIENT_ID",
 smappeeController.delegate = self
 ```
 
-Delegate method:
+Example delegate method:
 ```swift
     func loginWithCompletion(completion: (SmappeeCredentialsResult) -> Void) {
         loginCompletion = completion
@@ -42,8 +42,8 @@ Delegate method:
             loginCompletion = nil
         }
     }
-
 ```
+
 When the delegate method is called, your code must call the supplied completion handler exactly once. For instance you could do this after presenting a login UI. In the following example we imagine that the login UI calls the following delegate method once the user has entered username and password
 ```swift
     func loginViewController(loginViewController: LoginViewController, didReturnUsername username: String, password: String) {
@@ -57,8 +57,17 @@ When the delegate method is called, your code must call the supplied completion 
 
 Now the API knows how to authenticate the user. This will automatically happen the first time you use any of the API methods on the SmappeeController instance. If the user has already logged in, a valid access token and refresh token will already be registered, and it will not be necessary to log in again.
 
-Using the API
-
+Using the API:
+The API is highly functional and inspired by the Error Handling article by Alexandros Salazar mentioned above.
+In the following closure, r is a Result object which either represents an Failure (if something went wrong in the process of sending the request or authenticating the user) - or a Success which holds the actual response. 
+```swift
+  smappeeController.sendServiceLocationRequest { r in
+    if let value = r.value {
+       // r is now an array of ServiceLocation structs
+    }
+  }
+```
+All the other API calls are similar in structure.
 
 
 ### Also note ###
