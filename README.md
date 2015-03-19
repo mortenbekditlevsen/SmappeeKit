@@ -77,15 +77,14 @@ This means that you may chain methods together as follows:
     let firstLocation = locations.flatMap({ valueOrError($0.first, "No service locations found")})
     firstLocation.flatMap(self.smappeeController.sendServiceLocationInfoRequest) { locationInfo in
       let firstActuator = locationInfo.flatMap({ valueOrError($0.actuators.first, "No actuators found")})
-      firstActuator.flatMap(self.smappeeController.sendTurnOffRequest) { r in
+      firstActuator.flatMap(self.smappeeController.sendTurnOnRequest) { r in
         // r is now a Success or a Failure propagated along from where it first went wrong
       }
     }
   }
 ```
-Beautiful, right! 
+This short snippet of code both handles any login, refreshing of access token depending on whether that is necessary, then gets a list of locations - gets the first of these (emitting an error if it went wrong), sends a location info request, which contains a list of actuators. If no actuators are found it emits an error - otherwise it turns on the actuator. Beautiful, right! ;-)
 
-The above example is probably a little extreme, but you get the point! ;-)
 
 ### Also note ###
 In accordance with [The CocoaPods documentation](http://guides.cocoapods.org/using/using-cocoapods.html#should-i-ignore-the-pods-directory-in-source-control), the Pods directory has been committed along with the project.
