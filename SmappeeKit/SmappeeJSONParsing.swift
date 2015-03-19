@@ -8,8 +8,6 @@
 
 import Foundation
 import SwiftyJSON
-import LlamaKit
-
 
 func parseServiceLocations(json: JSON, completion: (Result<[ServiceLocation], String>) -> Void) {
     let serviceLocations = mapOrFail(json["serviceLocations"].arrayValue) {

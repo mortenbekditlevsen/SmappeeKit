@@ -7,7 +7,6 @@
 //
 
 import UIKit
-import LlamaKit
 import SmappeeKit
 
 class ViewController: UIViewController, SmappeeControllerDelegate, LoginViewControllerDelegate {

@@ -24,6 +24,8 @@
 		A93AB0111AAC526F0044FEC8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A93AB0101AAC526F0044FEC8 /* Images.xcassets */; };
 		A93AB0141AAC526F0044FEC8 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = A93AB0121AAC526F0044FEC8 /* LaunchScreen.xib */; };
 		A93AB02A1AAC540B0044FEC8 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AB0291AAC540B0044FEC8 /* LoginViewController.swift */; };
+		A98058831ABAC44000517072 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98058821ABAC44000517072 /* Result.swift */; };
+		A98058841ABAC4D600517072 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98058821ABAC44000517072 /* Result.swift */; };
 		A9FDCF8F1AB43C5900BE6717 /* SmappeeRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF8E1AB43C5900BE6717 /* SmappeeRequest.swift */; };
 		A9FDCF911AB43D7D00BE6717 /* SmappeeTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF901AB43D7D00BE6717 /* SmappeeTypes.swift */; };
 		A9FDCF941AB43E0A00BE6717 /* SmappeeTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF901AB43D7D00BE6717 /* SmappeeTypes.swift */; };
@@ -80,6 +82,7 @@
 		A93AB0101AAC526F0044FEC8 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		A93AB0131AAC526F0044FEC8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
 		A93AB0291AAC540B0044FEC8 /* LoginViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
+		A98058821ABAC44000517072 /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Result.swift; path = LlamaKit/Result.swift; sourceTree = "<group>"; };
 		A9B73C471AB49DB900FFF7C7 /* SmappeeKitTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SmappeeKitTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		A9FDCF8E1AB43C5900BE6717 /* SmappeeRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SmappeeRequest.swift; sourceTree = "<group>"; };
 		A9FDCF901AB43D7D00BE6717 /* SmappeeTypes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SmappeeTypes.swift; sourceTree = "<group>"; };
@@ -139,6 +142,7 @@
 			children = (
 				A93AAF851AAC479F0044FEC8 /* SmappeeKit */,
 				A93AAF921AAC479F0044FEC8 /* SmappeeKitTests */,
+				A98058811ABAC40F00517072 /* LlamaKit */,
 				A93AB0061AAC526F0044FEC8 /* Example */,
 				A93AAF841AAC479F0044FEC8 /* Products */,
 				BB3ACDE5F7B3EB082B6137D0 /* Pods */,
@@ -218,6 +222,14 @@
 				A93AB0081AAC526F0044FEC8 /* Info.plist */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		A98058811ABAC40F00517072 /* LlamaKit */ = {
+			isa = PBXGroup;
+			children = (
+				A98058821ABAC44000517072 /* Result.swift */,
+			);
+			path = LlamaKit;
 			sourceTree = "<group>";
 		};
 		BB3ACDE5F7B3EB082B6137D0 /* Pods */ = {
@@ -526,6 +538,7 @@
 				A93AAFA01AAC47D70044FEC8 /* SmappeeController.swift in Sources */,
 				A9FDCF9B1AB43EE200BE6717 /* SmappeeAPIEndpoints.swift in Sources */,
 				A9FDCF911AB43D7D00BE6717 /* SmappeeTypes.swift in Sources */,
+				A98058831ABAC44000517072 /* Result.swift in Sources */,
 				A9FDCF8F1AB43C5900BE6717 /* SmappeeRequest.swift in Sources */,
 				A9FDCFA11AB4886700BE6717 /* ResultUtility.swift in Sources */,
 			);
@@ -535,6 +548,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A98058841ABAC4D600517072 /* Result.swift in Sources */,
 				A9FDCF981AB43E8400BE6717 /* SmappeeJSONParsing.swift in Sources */,
 				A9FDCFA41AB4886A00BE6717 /* ResultUtility.swift in Sources */,
 				A90168E21AB4A95900423FE3 /* NSURLConnectionMock.swift in Sources */,

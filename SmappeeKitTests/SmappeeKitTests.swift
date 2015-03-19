@@ -8,7 +8,6 @@
 
 import UIKit
 import XCTest
-import LlamaKit
 import SwiftyJSON
 
 class SmappeeKitTests: XCTestCase, SmappeeControllerDelegate {

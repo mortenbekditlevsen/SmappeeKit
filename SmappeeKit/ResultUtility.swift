@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import LlamaKit
 
 func mapOrFail<T,U,E> (array: [T], transform: (T) -> Result<U,E>) -> Result<[U],E> {
     var result = [U]()

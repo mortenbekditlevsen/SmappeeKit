@@ -8,7 +8,6 @@
 
 import Foundation
 import SwiftyJSON
-import LlamaKit
 
 enum InternalRequestResult {
     case Success(JSON)

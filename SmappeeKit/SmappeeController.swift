@@ -7,7 +7,6 @@
 //
 
 import Foundation
-import LlamaKit
 
 public typealias ServiceLocationRequestResult = Result<[ServiceLocation], String>
 public typealias ServiceLocationInfoRequestResult = Result<ServiceLocationInfo, String>
