@@ -69,6 +69,21 @@ In the following closure, r is a Result object which either represents an Failur
 ```
 All the other API calls are similar in structure.
 
+You may use 'map' and 'flatMap' on the Result value to chain together serveral API methods. Besides the 'map' and 'flatMap' described by Alexandros, I have made corresponding versions that work asynchronously using closures.
+
+This means that you may chain methods together as follows:
+```swift
+  smappeeController.sendServiceLocationRequest { locationsResult in
+    let firstLocationResult = locationsResult.flatMap({ valueOrError($0.first, "No service locations found")})
+    firstLocationResult.flatMap(self.smappeeController.sendServiceLocationInfoRequest) { locationInfoResult in
+       let firstActuatorResult = locationInfoResult.flatMap({ valueOrError($0.actuators.first, "No actuators found")})
+       firstAcuatorResult.flatMap(self.smappeeController.sendTurnOffRequest) { r in
+         // r is now a Success or a Failure propagated along from where it first went wrong
+       }
+    }
+  }
+```
+The above example is probably a little extreme, but you get the point! ;-)
 
 ### Also note ###
 In accordance with [The CocoaPods documentation](http://guides.cocoapods.org/using/using-cocoapods.html#should-i-ignore-the-pods-directory-in-source-control), the Pods directory has been committed along with the project.
