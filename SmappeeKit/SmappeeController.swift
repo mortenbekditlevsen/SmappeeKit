@@ -17,7 +17,7 @@ public typealias SmappeeCredentialsResult = Result<(username: String, password: 
 
 // Delegate protocol for supplying login credentials
 
-public protocol SmappeControllerDelegate: class {
+public protocol SmappeeControllerDelegate: class {
     func loginWithCompletion(completion: (SmappeeCredentialsResult) -> Void)
 }
 
@@ -79,7 +79,7 @@ public class SmappeeController {
     let clientId, clientSecret: String
     private var saveTokens = false
     
-    public weak var delegate: SmappeControllerDelegate?
+    public weak var delegate: SmappeeControllerDelegate?
     
     var loginState : SmappeeLoginState {
         didSet {

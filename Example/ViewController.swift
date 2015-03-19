@@ -10,7 +10,7 @@ import UIKit
 import LlamaKit
 import SmappeeKit
 
-class ViewController: UIViewController, SmappeControllerDelegate, LoginViewControllerDelegate {
+class ViewController: UIViewController, SmappeeControllerDelegate, LoginViewControllerDelegate {
 
     let smappeeController: SmappeeController
     var serviceLocation: ServiceLocation?

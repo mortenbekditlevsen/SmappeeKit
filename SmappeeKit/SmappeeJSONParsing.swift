@@ -125,7 +125,7 @@ func parseServiceLocationInfo(json: JSON, completion: ServiceLocationInfoRequest
         completion(success(serviceLocationInfo))
     }
     else {
-        completion(failure("Error parsing service locations from JSON response"))
+        completion(failure("Error parsing service location info from JSON response"))
     }
 }
 

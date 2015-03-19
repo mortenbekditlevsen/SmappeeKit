@@ -8,12 +8,218 @@
 
 import UIKit
 import XCTest
+import LlamaKit
+import SwiftyJSON
 
-class SmappeeKitTests: XCTestCase {
+class SmappeeKitTests: XCTestCase, SmappeeControllerDelegate {
+    
+    var controller: SmappeeController? = nil
+    var returnLoginError = false
+    var expectation: XCTestExpectation? = nil
+    
+    var serviceLocation: ServiceLocation!
+    var appliances : [Appliance]!
+    var maxNumber : Int!
+    var from : NSDate!
+    var to : NSDate!
+    var aggregation : SmappeeAggregation!
+    var actuator : Actuator!
+
+    func configureAccessTokenResponse() {
+        let endPoint = SmappeeRequest.tokenEndPoint
+        let data = JSON(["access_token": "testToken", "refresh_token": "testRefreshToken"]).rawData()
+        NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
+    }
+    
+    func configureAccessTokenUnexpectedJSONResponse() {
+        let endPoint = SmappeeRequest.tokenEndPoint
+        let data = JSON(["wrong_key": "testToken"]).rawData()
+        NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
+    }
+    
+    func configureSingleInvalidJSONResponse() {
+        let data = "invalidjson".dataUsingEncoding(NSUTF8StringEncoding, allowLossyConversion: true)
+        NSURLConnectionMock.sharedInstance.overrideSingleResponse = (nil, data, nil)
+    }
+    
+    func configureAccessTokenErrorResponse() {
+        let endPoint = SmappeeRequest.tokenEndPoint
+        NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, nil, NSError(domain: "ErrorDomain", code: 12345, userInfo: nil))
+    }
+    
+    func configureServiceLocationResponse() {
+        let endPoint = serviceLocationEndPoint
+        let data = JSON(["serviceLocations": [
+            ["serviceLocationId": 1, "name": "Home"],
+            ["serviceLocationId": 2, "name": "Cottage"],
+            ["serviceLocationId": 3, "name": "Shop"],
+        ]]).rawData()
+
+        NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
+    }
+    
+    func configureServiceLocationUnexpectedJSONResponse() {
+        let endPoint = serviceLocationEndPoint
+        let data = JSON(["serviceLocations": [
+            ["serviceLocationId": 1, "name": "Home"],
+            ["serviceLocationId": 2, "name": "Cottage"],
+            ["unexpected": 3],
+        ]]).rawData()
+        
+        NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
+    }
+    
+    func configureServiceLocationInfoResponse() {
+        let endPoint = serviceLocationInfoEndPoint(serviceLocation)
+        let data = JSON(["serviceLocationId": 1,
+            "name": "Home",
+            "electricityCurrency": "DKK",
+            "electricityCost": 2.25,
+            "lon": 9.0,
+            "lat": 52.1
+            ]).rawData()
+        
+        NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
+    }
+    
+    func configureServiceLocationInfoUnexpectedJSONResponse() {
+        let endPoint = serviceLocationInfoEndPoint(serviceLocation)
+        let data = JSON(["serviceLocationId": 1,
+            "name": "Home",
+            "electricityCurrency": "DKK",
+            "electricityCost": 2.25,
+            "lon": 9.0,
+            ]).rawData()
+        
+        NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
+    }
+
+    func configureServiceLocationErrorResponse() {
+        let endPoint = serviceLocationEndPoint
+        
+        NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, nil, NSError(domain: "ErrorDomain", code: 12345, userInfo: nil))
+    }
+    
+    func configureConsumptionEndPoint(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation) {
+        let endPoint = consumptionEndPoint(serviceLocation, from, to, aggregation)
+        let data = JSON(
+            ["consumptions": [
+                ["consumption": 10.0,
+                    "alwaysOn": 5.0,
+                    "timestamp": 1234.0,
+                    "solar": 10.0],
+                ["consumption": 10.0,
+                    "alwaysOn": 5.0,
+                    "timestamp": 1234.0,
+                    "solar": 10.0],
+                ["consumption": 10.0,
+                    "alwaysOn": 5.0,
+                    "timestamp": 1234.0,
+                    "solar": 10.0]]]).rawData()
+        NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
+    }
+    
+    func configureConsumptionEndPointUnexpectedJSON(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation) {
+        let endPoint = consumptionEndPoint(serviceLocation, from, to, aggregation)
+        let data = JSON(
+            ["consumptions": [
+                ["consumption": 10.0,
+                    "alwaysOn": 5.0,
+                    "timestamp": 1234.0,
+                    "solar": 10.0],
+                ["consumption": 10.0,
+                    "alwaysOn": 5.0,
+                    "timestamp": 1235.0,
+                    "solar": 10.0],
+                ["consumptionx": 10.0,
+                    "alwaysOn": 5.0,
+                    "timestamp": 1236.0,
+                    "solar": 10.0]]]).rawData()
+        NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
+    }
+    
+    func configureEventsEndPoint(serviceLocation: ServiceLocation, appliances: Array<Appliance>, maxNumber: Int, from: NSDate, to: NSDate) {
+        let endPoint = eventsEndPoint(serviceLocation, appliances, maxNumber, from, to)
+        let data = JSON([
+            ["applianceId": 1,
+                "activePower": 5.0,
+                "timestamp": 1234.0],
+            ["applianceId": 1,
+                "activePower": 5.0,
+                "timestamp": 1234.0],
+            ["applianceId": 1,
+                "activePower": 5.0,
+                "timestamp": 1234.0],
+            ]).rawData()
+        NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
+    }
+    
+    func configureEventsEndPointUnexpectedJSONResponse(serviceLocation: ServiceLocation, appliances: Array<Appliance>, maxNumber: Int, from: NSDate, to: NSDate) {
+        let endPoint = eventsEndPoint(serviceLocation, appliances, maxNumber, from, to)
+        let data = JSON([
+            ["applianceId": 1,
+                "activePower": 5.0,
+                "timestamp": 1234.0],
+            ["applianceId": 1,
+                "activePower": 5.0,
+                "timestamp": 1234.0],
+            ["applianceId": 1,
+                "activePower": 5.0,
+                "timestampx": 1234.0],
+            ]).rawData()
+        NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
+    }
+
+    func configureActuatorEndPoint(actuator: Actuator, on: Bool) {
+        let endPoint = actuatorEndPoint(actuator, on)
+        let data = JSON([]).rawData()
+        NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
+    }
+
+    
+    func configureServiceLocationAccessTokenExpiredResponse() {
+        let endPoint = serviceLocationEndPoint
+        
+        NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, nil, NSError(domain: NSURLErrorDomain, code: -1012, userInfo: nil))
+    }
+    
+    func configureSingleAccessTokenExpiredResponse() {
+        NSURLConnectionMock.sharedInstance.overrideSingleResponse = (nil, nil, NSError(domain: NSURLErrorDomain, code: -1012, userInfo: nil))
+    }
+
+    
+    func loginWithCompletion(completion: (SmappeeCredentialsResult) -> Void) {
+        if returnLoginError {
+            completion(smappeeLoginFailure("User cancelled login"))
+        }
+        else {
+            completion(smappeeLoginSuccess("testuser", "testpassword"))
+        }
+    }
+
     
     override func setUp() {
         super.setUp()
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+        
+        expectation = self.expectationWithDescription("ServiceLocationRequest completion expectation")
+
+        serviceLocation = ServiceLocation(id: 1, name: "Home")
+        appliances = [Appliance(serviceLocation: serviceLocation,
+            id: 1, name: "Espresso Machine", type: "")]
+        maxNumber = 10
+        from = NSDate()
+        to = NSDate()
+        aggregation = .Daily
+        actuator = Actuator(serviceLocation: serviceLocation, id: 1, name: "Outdoor lights")
+
+        configureAccessTokenResponse()
+        configureServiceLocationResponse()
+        configureServiceLocationInfoResponse()
+        
+        controller = SmappeeController(clientId: "xxx", clientSecret: "yyy", saveTokens: false)
+
+        controller?.delegate = self
+        returnLoginError = false
     }
     
     override func tearDown() {
@@ -21,16 +227,265 @@ class SmappeeKitTests: XCTestCase {
         super.tearDown()
     }
     
-    func testExample() {
-        // This is an example of a functional test case.
-        XCTAssert(true, "Pass")
-    }
-    
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measureBlock() {
-            // Put the code you want to measure the time of here.
+    func testMissingDelegate() {
+        controller?.delegate = nil
+        controller!.sendServiceLocationRequest {
+            r in
+            XCTAssert(r.error! == "No SmappeeControllerDelegate provided", "Expecting SmappeeControllerDelegate error")
+            self.expectation?.fulfill()
         }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
     }
     
+    func testDelegateWithUserCancellingLogin() {
+        returnLoginError = true
+        controller!.sendServiceLocationRequest {
+            r in
+            XCTAssert(r.error! == "User cancelled login", "Expecting custom error from login delegate")
+            self.expectation?.fulfill()
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+    
+    func testDelegateLoginSuccess() {
+        controller!.sendServiceLocationRequest {
+            r in
+            XCTAssert(r.value != nil, "Expecting login success")
+            self.expectation?.fulfill()
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+
+    func testAccessTokenUnexpectedJSONResponse() {
+        configureAccessTokenUnexpectedJSONResponse()
+        controller!.sendServiceLocationRequest {
+            r in
+            XCTAssert(r.error == "Could not parse reply", "Expecting JSON error")
+            self.expectation?.fulfill()
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+
+    func testAccessTokenInvalidJSONResponse() {
+        configureSingleInvalidJSONResponse()
+        controller!.sendServiceLocationRequest {
+            r in
+            XCTAssert(r.error == "Could not parse reply", "Expecting JSON error")
+            self.expectation?.fulfill()
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+
+    func testAccessTokenErrorResponse() {
+        configureAccessTokenErrorResponse()
+        controller!.sendServiceLocationRequest {
+            r in
+            XCTAssert(r.error != nil, "Expecting error")
+            self.expectation?.fulfill()
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+
+    func testReuseAccessToken() {
+        controller!.sendServiceLocationRequest { r in
+            XCTAssert(r.value != nil, "Expecting login success")
+            
+            self.controller!.sendServiceLocationRequest { r in
+                XCTAssert(r.value != nil, "Expecting a value")
+                self.expectation?.fulfill()
+            }
+
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+    
+    func testReuseAccessTokenWithAccessTokenExpiredInfinitely() {
+        controller!.sendServiceLocationRequest { r in
+            XCTAssert(r.value != nil, "Expecting login success")
+            
+            self.configureServiceLocationAccessTokenExpiredResponse()
+            self.controller!.sendServiceLocationRequest { r in
+                XCTAssert(r.error == "State machine is running in circles", "Expecting break out from infinite loop of refreshing access token and then being told that access token is expired")
+                self.expectation?.fulfill()
+            }
+            
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+
+    func testReuseAccessTokenWithAccessTokenExpiredOnce() {
+        controller!.sendServiceLocationRequest { r in
+            XCTAssert(r.value != nil, "Expecting login success")
+            
+            self.configureSingleAccessTokenExpiredResponse()
+            self.controller!.sendServiceLocationRequest { r in
+                XCTAssert(r.value != nil, "Expecting a value")
+                self.expectation?.fulfill()
+            }
+            
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+
+    func testServiceLocationEndPoint() {
+        controller!.sendServiceLocationRequest {
+            r in
+            XCTAssert(r.value != nil, "Expecting a ServiceLocation result")
+
+            if let value = r.value {
+                XCTAssert(value.count == 3, "Expecting three service locations to be returned")
+                XCTAssert(value[2].name == "Shop", "Expecting third service location to be named 'Shop'")
+                XCTAssert(value[1].id == 2, "Expecting second service location to have id '2'")
+            }
+            self.expectation?.fulfill()
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+    
+    func testServiceLocationEndPointUnexpectedJSON() {
+        configureServiceLocationUnexpectedJSONResponse()
+        
+        controller!.sendServiceLocationRequest {
+            r in
+            XCTAssert(r.error == "Error parsing service locations from JSON response", "Expecting JSON error")
+            self.expectation?.fulfill()
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+
+    func testServiceLocationEndPointInvalidJSON() {
+        // Send a serviceLocationRequest to ensure that we are logged in first
+        controller!.sendServiceLocationRequest() { r in
+            self.configureSingleInvalidJSONResponse()
+            self.controller!.sendServiceLocationRequest {
+                r in
+                XCTAssert(r.error == "Could not parse JSON", "Expecting parse error")
+                self.expectation?.fulfill()
+            }
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+
+    func testServiceLocationEndPointErrorResponse () {
+        configureServiceLocationErrorResponse()
+        
+        controller!.sendServiceLocationRequest {
+            r in
+            XCTAssert(r.error != nil, "Expecting error")
+            self.expectation?.fulfill()
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+    
+    func testServiceLocationInfoEndPoint() {
+        controller!.sendServiceLocationInfoRequest(serviceLocation) { r in
+            XCTAssert(r.value != nil, "Expecting a correct ServiceLocationInfo result")
+            self.expectation?.fulfill()
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+    
+    func testServiceLocationInfoEndPointUnexpectedJSON() {
+        configureServiceLocationInfoUnexpectedJSONResponse()
+        controller!.sendServiceLocationInfoRequest(serviceLocation) { r in
+            XCTAssert(r.error == "Error parsing service location info from JSON response", "Expecting JSON error")
+            self.expectation?.fulfill()
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+
+    func testServiceLocationInfoEndPointInvalidJSON() {
+        // Send a serviceLocationRequest to ensure that we are logged in first
+        controller!.sendServiceLocationRequest() { r in
+            self.configureSingleInvalidJSONResponse()
+            self.controller!.sendServiceLocationInfoRequest(self.serviceLocation) { r in
+                XCTAssert(r.error == "Could not parse JSON", "Expecting parse error")
+                self.expectation?.fulfill()
+            }
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+
+    
+    func testConsumptionEndPoint() {
+        configureConsumptionEndPoint(serviceLocation, from: from, to: to, aggregation: aggregation)
+        controller!.sendConsumptionRequest(serviceLocation, from: from, to: to, aggregation: aggregation) { r in
+            XCTAssert(r.value != nil, "Expecting a correct Consumption result")
+            self.expectation?.fulfill()
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+    
+    func testConsumptionEndPointUnexpectedJSON() {
+        configureConsumptionEndPointUnexpectedJSON(serviceLocation, from: from, to: to, aggregation: aggregation)
+        controller!.sendConsumptionRequest(serviceLocation, from: from, to: to, aggregation: aggregation) { r in
+            XCTAssert(r.error == "Error parsing consumption entries from JSON response", "Expecting JSON error")
+            self.expectation?.fulfill()
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+    
+    func testConsumptionEndPointInvalidJSON() {
+        // Send a serviceLocationRequest to ensure that we are logged in first
+        controller!.sendServiceLocationRequest() { r in
+            self.configureSingleInvalidJSONResponse()
+            self.controller!.sendConsumptionRequest(self.serviceLocation, from: self.from, to: self.to, aggregation: self.aggregation) { r in
+                XCTAssert(r.error == "Could not parse JSON", "Expecting parse error")
+                self.expectation?.fulfill()
+            }
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+
+
+    func testEventsEndPoint() {
+        configureEventsEndPoint(serviceLocation, appliances: appliances, maxNumber: maxNumber, from: from, to: to)
+        controller!.sendEventsRequest(serviceLocation, appliances: appliances, maxNumber: maxNumber, from: from, to: to) { r in
+            XCTAssert(r.value != nil, "Expecting a correct Events result")
+            self.expectation?.fulfill()
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+    
+    func testEventsEndPointUnexpectedJSON() {
+        configureEventsEndPointUnexpectedJSONResponse(serviceLocation, appliances: appliances, maxNumber: maxNumber, from: from, to: to)
+        controller!.sendEventsRequest(serviceLocation, appliances: appliances, maxNumber: maxNumber, from: from, to: to) { r in
+            XCTAssert(r.error == "Error parsing events from JSON response", "Expecting JSON error")
+            self.expectation?.fulfill()
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+    
+    func testEventsEndPointInvalidJSON() {
+        // Send a serviceLocationRequest to ensure that we are logged in first
+        controller!.sendServiceLocationRequest() { r in
+            self.configureSingleInvalidJSONResponse()
+            self.controller!.sendEventsRequest(self.serviceLocation, appliances: self.appliances, maxNumber: self.maxNumber, from: self.from, to: self.to) { r in
+                XCTAssert(r.error == "Could not parse JSON", "Expecting parse error")
+                self.expectation?.fulfill()
+            }
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+    
+    func testActuatorEndPoint() {
+        configureActuatorEndPoint(actuator, on: true)
+        controller!.sendActuatorRequest(actuator, on: true, duration: .FiveMinutes) { r in
+            XCTAssert(r.value != nil, "Expecting a valid actuator result")
+            self.expectation?.fulfill()
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
+
+    func testActuatorEndPointInvalidJSON() {
+        // Send a serviceLocationRequest to ensure that we are logged in first
+        controller!.sendServiceLocationRequest() { r in
+            self.configureSingleInvalidJSONResponse()
+            self.controller!.sendActuatorRequest(self.actuator, on: true, duration: .FiveMinutes) { r in
+                XCTAssert(r.error == "Could not parse JSON", "Expecting parse error")
+                self.expectation?.fulfill()
+            }
+        }
+        self.waitForExpectationsWithTimeout(10, handler: nil)
+    }
 }

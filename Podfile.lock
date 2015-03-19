@@ -15,7 +15,7 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   LlamaKit:
-    :commit: d8a97e26142b4d97d0beb883483a4cbd9ff28c21
+    :commit: 5f86f1b0337acc1919731a2baec106d165db9b60
     :git: https://github.com/mortenbekditlevsen/LlamaKit.git
   SwiftyJSON:
     :commit: 0691445da4c4a94484621919c347d7b69f9598fe
