@@ -73,16 +73,18 @@ You may use 'map' and 'flatMap' on the Result value to chain together serveral A
 
 This means that you may chain methods together as follows:
 ```swift
-  smappeeController.sendServiceLocationRequest { locationsResult in
-    let firstLocationResult = locationsResult.flatMap({ valueOrError($0.first, "No service locations found")})
-    firstLocationResult.flatMap(self.smappeeController.sendServiceLocationInfoRequest) { locationInfoResult in
-       let firstActuatorResult = locationInfoResult.flatMap({ valueOrError($0.actuators.first, "No actuators found")})
-       firstAcuatorResult.flatMap(self.smappeeController.sendTurnOffRequest) { r in
-         // r is now a Success or a Failure propagated along from where it first went wrong
-       }
+  smappeeController.sendServiceLocationRequest { locations in
+    let firstLocation = locations.flatMap({ valueOrError($0.first, "No service locations found")})
+    firstLocation.flatMap(self.smappeeController.sendServiceLocationInfoRequest) { locationInfo in
+      let firstActuator = locationInfo.flatMap({ valueOrError($0.actuators.first, "No actuators found")})
+      firstActuator.flatMap(self.smappeeController.sendTurnOffRequest) { r in
+        // r is now a Success or a Failure propagated along from where it first went wrong
+      }
     }
   }
 ```
+Beautiful, right! 
+
 The above example is probably a little extreme, but you get the point! ;-)
 
 ### Also note ###
