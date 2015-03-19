@@ -19,6 +19,6 @@ In accordance with [The CocoaPods documentation](http://guides.cocoapods.org/usi
 ### TODO ###
 * Finish this README text
 * ~~Add Swift structs to represent the data types returned by the Smappee API~~
-* Add a test suite
+* ~~Add a test suite~~
 * ~~Use LlamaKit Result type~~
 * Add a PodSpec so SmappeeKit can be used with CocoaPods
