@@ -8,11 +8,11 @@
 
 import Foundation
 
-public typealias ServiceLocationRequestResult = Result<[ServiceLocation], String>
-public typealias ServiceLocationInfoRequestResult = Result<ServiceLocationInfo, String>
-public typealias EventsRequestResult = Result<[ApplianceEvent], String>
-public typealias ConsumptionRequestResult = Result<[Consumption], String>
-public typealias SmappeeCredentialsResult = Result<(username: String, password: String), String>
+public typealias ServiceLocationRequestResult = Result<[ServiceLocation], NSError>
+public typealias ServiceLocationInfoRequestResult = Result<ServiceLocationInfo, NSError>
+public typealias EventsRequestResult = Result<[ApplianceEvent], NSError>
+public typealias ConsumptionRequestResult = Result<[Consumption], NSError>
+public typealias SmappeeCredentialsResult = Result<(username: String, password: String), NSError>
 
 // Delegate protocol for supplying login credentials
 
@@ -20,12 +20,17 @@ public protocol SmappeeControllerDelegate: class {
     func loginWithCompletion(completion: (SmappeeCredentialsResult) -> Void)
 }
 
+public protocol SmappeeControllerLoginStateDelegate: class {
+    func loginStateChangedFrom(loginState oldLoginState: SmappeeLoginState, toLoginState newLoginState: SmappeeLoginState)
+}
+
+
 public func smappeeLoginSuccess (username: String, password: String) -> SmappeeCredentialsResult {
-    return .Success(Box(username: username, password: password))
+    return success(username: username, password: password)
 }
 
 public func smappeeLoginFailure (errorMessage: String) -> SmappeeCredentialsResult {
-    return .Failure(Box(errorMessage))
+    return SmappeeError.UserCancelledLoginError.errorResult(errorDescription: errorMessage)
 }
 
 /// Login State for the Smappee client
@@ -79,9 +84,11 @@ public class SmappeeController {
     private var saveTokens = false
     
     public weak var delegate: SmappeeControllerDelegate?
+    public weak var loginStateDelegate: SmappeeControllerLoginStateDelegate?
     
     var loginState : SmappeeLoginState {
         didSet {
+            loginStateDelegate?.loginStateChangedFrom(loginState: oldValue, toLoginState: loginState)
             if (!saveTokens) {
                 return
             }
@@ -138,7 +145,7 @@ public class SmappeeController {
     
     // MARK: API Methods
     
-    public func sendServiceLocationRequest(completion: (Result<[ServiceLocation], String>) -> Void) {
+    public func sendServiceLocationRequest(completion: (Result<[ServiceLocation], NSError>) -> Void) {
         let request = NSURLRequest.init(URL: NSURL.init(string: serviceLocationEndPoint)!)
         SmappeeRequest(urlRequest: request, controller: self) { r in
             r.flatMap(parseServiceLocations, completion: completion)
@@ -179,15 +186,26 @@ public class SmappeeController {
         sendTurnOnRequest(actuator, completion: {r in })
     }
     
-    public func sendTurnOnRequest(actuator: Actuator, duration: SmappeeActuatorDuration = .Indefinitely, completion: (Result<Void, String>) -> Void = { result in }) {
-        sendActuatorRequest(actuator, on: true, duration: duration, completion: completion)
+    // The reason I am overloading here - instead of just supplying default values to 'duration' parameter is that
+    // the Result 'flatMap' takes a function with two parameters, input and completion. It does not know how to handle default values of functions
+    // Overloading does the trick!
+    public func sendTurnOnRequest(actuator: Actuator, completion: (Result<Void, NSError>) -> Void = { result in }) {
+        sendActuatorRequest(actuator, on: true, duration: .Indefinitely, completion: completion)
     }
     
-    public func sendTurnOffRequest(actuator: Actuator, duration: SmappeeActuatorDuration = .Indefinitely, completion: (Result<Void, String>) -> Void = { result in }) {
+    public func sendTurnOnRequest(actuator: Actuator, duration: SmappeeActuatorDuration, completion: (Result<Void, NSError>) -> Void = { result in }) {
+        sendActuatorRequest(actuator, on: true, duration: duration, completion: completion)
+    }
+
+    public func sendTurnOffRequest(actuator: Actuator, completion: (Result<Void, NSError>) -> Void = { result in }) {
+        sendActuatorRequest(actuator, on: false, duration: .Indefinitely, completion: completion)
+    }
+
+    public func sendTurnOffRequest(actuator: Actuator, duration: SmappeeActuatorDuration, completion: (Result<Void, NSError>) -> Void = { result in }) {
         sendActuatorRequest(actuator, on: false, duration: duration, completion: completion)
     }
     
-    public func sendActuatorRequest(actuator: Actuator, on: Bool, duration: SmappeeActuatorDuration, completion: (Result<Void, String>) -> Void = { result in }) {
+    public func sendActuatorRequest(actuator: Actuator, on: Bool, duration: SmappeeActuatorDuration, completion: (Result<Void, NSError>) -> Void = { result in }) {
         let endPoint = actuatorEndPoint(actuator, on)
         let request = NSMutableURLRequest.init(URL: NSURL.init(string: endPoint)!)
         let durationString: String

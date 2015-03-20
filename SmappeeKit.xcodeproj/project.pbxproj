@@ -26,6 +26,8 @@
 		A93AB02A1AAC540B0044FEC8 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AB0291AAC540B0044FEC8 /* LoginViewController.swift */; };
 		A98058831ABAC44000517072 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98058821ABAC44000517072 /* Result.swift */; };
 		A98058841ABAC4D600517072 /* Result.swift in Sources */ = {isa = PBXBuildFile; fileRef = A98058821ABAC44000517072 /* Result.swift */; };
+		A9921D271ABBF39D001340F6 /* SmappeeError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9921D261ABBF39D001340F6 /* SmappeeError.swift */; };
+		A9921D281ABC029C001340F6 /* SmappeeError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9921D261ABBF39D001340F6 /* SmappeeError.swift */; };
 		A9FDCF8F1AB43C5900BE6717 /* SmappeeRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF8E1AB43C5900BE6717 /* SmappeeRequest.swift */; };
 		A9FDCF911AB43D7D00BE6717 /* SmappeeTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF901AB43D7D00BE6717 /* SmappeeTypes.swift */; };
 		A9FDCF941AB43E0A00BE6717 /* SmappeeTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF901AB43D7D00BE6717 /* SmappeeTypes.swift */; };
@@ -83,6 +85,7 @@
 		A93AB0131AAC526F0044FEC8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
 		A93AB0291AAC540B0044FEC8 /* LoginViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
 		A98058821ABAC44000517072 /* Result.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Result.swift; path = LlamaKit/Result.swift; sourceTree = "<group>"; };
+		A9921D261ABBF39D001340F6 /* SmappeeError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SmappeeError.swift; sourceTree = "<group>"; };
 		A9B73C471AB49DB900FFF7C7 /* SmappeeKitTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "SmappeeKitTests-Bridging-Header.h"; sourceTree = "<group>"; };
 		A9FDCF8E1AB43C5900BE6717 /* SmappeeRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SmappeeRequest.swift; sourceTree = "<group>"; };
 		A9FDCF901AB43D7D00BE6717 /* SmappeeTypes.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SmappeeTypes.swift; sourceTree = "<group>"; };
@@ -165,6 +168,7 @@
 			children = (
 				A93AAF881AAC479F0044FEC8 /* SmappeeKit.h */,
 				A93AAF9F1AAC47D70044FEC8 /* SmappeeController.swift */,
+				A9921D261ABBF39D001340F6 /* SmappeeError.swift */,
 				A9FDCF901AB43D7D00BE6717 /* SmappeeTypes.swift */,
 				A9FDCF8E1AB43C5900BE6717 /* SmappeeRequest.swift */,
 				A9FDCF961AB43E8400BE6717 /* SmappeeJSONParsing.swift */,
@@ -536,6 +540,7 @@
 			files = (
 				A9FDCF971AB43E8400BE6717 /* SmappeeJSONParsing.swift in Sources */,
 				A93AAFA01AAC47D70044FEC8 /* SmappeeController.swift in Sources */,
+				A9921D271ABBF39D001340F6 /* SmappeeError.swift in Sources */,
 				A9FDCF9B1AB43EE200BE6717 /* SmappeeAPIEndpoints.swift in Sources */,
 				A9FDCF911AB43D7D00BE6717 /* SmappeeTypes.swift in Sources */,
 				A98058831ABAC44000517072 /* Result.swift in Sources */,
@@ -556,6 +561,7 @@
 				A9FDCF941AB43E0A00BE6717 /* SmappeeTypes.swift in Sources */,
 				A9FDCF9C1AB43EE200BE6717 /* SmappeeAPIEndpoints.swift in Sources */,
 				A93AAF961AAC479F0044FEC8 /* SmappeeKitTests.swift in Sources */,
+				A9921D281ABC029C001340F6 /* SmappeeError.swift in Sources */,
 				A9FDCF951AB43E0C00BE6717 /* SmappeeRequest.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

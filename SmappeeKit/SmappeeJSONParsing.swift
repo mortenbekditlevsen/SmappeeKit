@@ -9,9 +9,9 @@
 import Foundation
 import SwiftyJSON
 
-func parseServiceLocations(json: JSON, completion: (Result<[ServiceLocation], String>) -> Void) {
+func parseServiceLocations(json: JSON, completion: (Result<[ServiceLocation], NSError>) -> Void) {
     let serviceLocations = mapOrFail(json["serviceLocations"].arrayValue) {
-        (json: JSON) -> (Result<ServiceLocation, String>) in
+        (json: JSON) -> (Result<ServiceLocation, NSError>) in
         
         if let
             id = json["serviceLocationId"].int,
@@ -19,7 +19,7 @@ func parseServiceLocations(json: JSON, completion: (Result<[ServiceLocation], St
                 return success(ServiceLocation(id: id, name: name))
         }
         else {
-            return failure("Error parsing service locations from JSON response")
+            return SmappeeError.JSONParseError.errorResult(errorDescription: "Error parsing Service Locations JSON")
         }
     }
     completion(serviceLocations)
@@ -29,7 +29,7 @@ func parseServiceLocations(json: JSON, completion: (Result<[ServiceLocation], St
 func parseEvents(json: JSON, appliances: [Int: Appliance], completion: EventsRequestResult -> Void) {
     
     let events = mapOrFail(json.arrayValue) {
-        (json: JSON) -> (Result<ApplianceEvent, String>) in
+        (json: JSON) -> (Result<ApplianceEvent, NSError>) in
         
         if let
             id = json["applianceId"].int,
@@ -40,7 +40,7 @@ func parseEvents(json: JSON, appliances: [Int: Appliance], completion: EventsReq
                 return success(ApplianceEvent(appliance: appliance, activePower: activePower, timestamp: date))
         }
         else {
-            return failure("Error parsing events from JSON response")
+            return SmappeeError.JSONParseError.errorResult(errorDescription: "Error parsing Events JSON")
         }
     }
     completion(events)
@@ -50,7 +50,7 @@ func parseEvents(json: JSON, appliances: [Int: Appliance], completion: EventsReq
 func parseConsumptions(json: JSON, completion: ConsumptionRequestResult -> Void) {
     
     let consumptions = mapOrFail(json["consumptions"].arrayValue) {
-        (json: JSON) -> (Result<Consumption, String>) in
+        (json: JSON) -> (Result<Consumption, NSError>) in
         
         if let
             consumption = json["consumption"].double,
@@ -62,7 +62,7 @@ func parseConsumptions(json: JSON, completion: ConsumptionRequestResult -> Void)
             return success(Consumption(consumption: consumption, alwaysOn: alwaysOn, timestamp: date, solar: solar))
         }
         else {
-            return failure("Error parsing consumption entries from JSON response")
+            return SmappeeError.JSONParseError.errorResult(errorDescription: "Error parsing Consumption JSON")
         }
     }
     completion(consumptions)
@@ -123,7 +123,7 @@ func parseServiceLocationInfo(json: JSON, completion: ServiceLocationInfoRequest
         completion(success(serviceLocationInfo))
     }
     else {
-        completion(failure("Error parsing service location info from JSON response"))
+        completion(SmappeeError.JSONParseError.errorResult(errorDescription: "Error parsing Service Location Info JSON"))
     }
 }
 

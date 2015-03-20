@@ -81,6 +81,21 @@ class ViewController: UIViewController, SmappeeControllerDelegate, LoginViewCont
         logoutButton.enabled = smappeeController.loggedIn()
     }
     
+    // Unused code - just to show how 'flatMap' can be used to chain together requests
+    // Just an example - it's probably better if you choose to store intermediate values somehow
+    func complexMappingExample() {
+        smappeeController.sendServiceLocationRequest { locations in
+            let firstLocation = locations.flatMap({ valueOrError($0.first, "No service locations found")})
+            firstLocation.flatMap(self.smappeeController.sendServiceLocationInfoRequest) { locationInfo in
+                let firstActuator = locationInfo.flatMap({ valueOrError($0.actuators.first, "No actuators found")})
+                firstActuator.flatMap(self.smappeeController.sendTurnOnRequest) { r in
+                    // r is now a Success or a Failure propagated along from where it first went wrong
+                    println(r)
+                }
+            }
+        }
+    }
+    
     // MARK: IB Actions
     @IBAction func serviceLocationsAction(sender: AnyObject) {
         getActuator()
@@ -107,7 +122,7 @@ class ViewController: UIViewController, SmappeeControllerDelegate, LoginViewCont
     
     // MARK: SmappeeKit calls
 
-    func getFirstServiceLocation(completion: (Result<ServiceLocation, String>) -> Void) {
+    func getFirstServiceLocation(completion: (Result<ServiceLocation, NSError>) -> Void) {
         if let location = self.serviceLocation {
             completion(success(location))
         }

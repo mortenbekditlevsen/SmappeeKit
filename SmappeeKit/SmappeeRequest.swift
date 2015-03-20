@@ -9,26 +9,16 @@
 import Foundation
 import SwiftyJSON
 
-enum InternalRequestResult {
-    case Success(JSON)
-    case AccessTokenExpired
-    case Failure(String)
-}
-
-
-typealias TokenRequestResult = Result<(accessToken: String, refreshToken: String), String>
-typealias SmappeeRequestResult = Result<JSON, String>
+typealias TokenRequestResult = Result<(accessToken: String, refreshToken: String), NSError>
+typealias SmappeeRequestResult = Result<JSON, NSError>
 
 class SmappeeRequest {
     
     static let tokenEndPoint = "https://app1pub.smappee.net/dev/v1/oauth2/token"
     
     var loginState : SmappeeLoginState {
-        willSet {
-            println("Old value: \(loginState)")
-        }
         didSet {
-            println("New value: \(loginState)")
+            controller.loginState = loginState
             changeState()
         }
     }
@@ -53,10 +43,9 @@ class SmappeeRequest {
     }
     
     func changeState() {
-        controller.loginState = loginState
         attempts--;
         if (attempts <= 0) {
-            completion(failure("State machine is running in circles"))
+            completion(SmappeeError.RequestStateMachineError.errorResult())
             return
         }
         
@@ -66,14 +55,21 @@ class SmappeeRequest {
             weak var weakSelf = self
             sendRequest(urlRequest, tokens.accessToken) { result in
                 switch result {
-                case .Success(let json):
+                case .Success(let box):
+                    let json = box.unbox
                     self.completion(success(json))
                     
-                case .AccessTokenExpired:
-                    self.loginState = .AccessTokenExpired(tokens.refreshToken)
-                    
-                case .Failure(let errorMessage):
-                    self.completion(failure(errorMessage))
+                case .Failure(let box):
+                    let error = box.unbox
+                    // Special handling of AccessTokenExpiredError, since this should just change state - 
+                    // and not result in calling the completion with an error
+                    if error.domain == SmappeeErrorDomain &&
+                        error.code == SmappeeError.AccessTokenExpiredError.rawValue {
+                        self.loginState = .AccessTokenExpired(tokens.refreshToken)
+                    }
+                    else {
+                        self.completion(failure(error))
+                    }
                 }
             }
         case .LoggedOut:
@@ -84,8 +80,8 @@ class SmappeeRequest {
                     self.loginState = .LoggedIn(tokens)
                     
                 case .Failure(let box):
-                    let errorMessage = box.unbox
-                    self.completion(failure(errorMessage))
+                    let error = box.unbox
+                    self.completion(failure(error))
                 }
             }
             
@@ -112,7 +108,7 @@ class SmappeeRequest {
             })
         }
         else {
-            completion(failure("No SmappeeControllerDelegate provided"))
+            completion(SmappeeError.DelegateMissingError.errorResult())
         }
     }
     
@@ -142,7 +138,7 @@ class SmappeeRequest {
 // MARK: Stateless functions
 
 
-private func sendTokenRequest(tokenRequest: NSURLRequest, completion: (result: TokenRequestResult) -> Void) {
+private func sendTokenRequest(tokenRequest: NSURLRequest, completion: (TokenRequestResult) -> Void) {
     NSURLConnection.sendAsynchronousRequest(tokenRequest, queue: NSOperationQueue.mainQueue()) {
         
         (response: NSURLResponse!, data: NSData?, error: NSError?) in
@@ -150,29 +146,29 @@ private func sendTokenRequest(tokenRequest: NSURLRequest, completion: (result: T
             let json = JSON(data: data)
             if let accessToken: String = json["access_token"].string,
                 let refreshToken: String = json["refresh_token"].string {
-                    completion(result: success(accessToken: accessToken, refreshToken: refreshToken))
+                    completion(success(accessToken: accessToken, refreshToken: refreshToken))
             }
             else if let error: String = json["error"].string {
                 var errorMessage = error
                 if let errorDescription: String = json["error_description"].string {
                     errorMessage += ": \(errorDescription)"
                 }
-                completion(result: failure(errorMessage))
+                completion(SmappeeError.APIError.errorResult(errorDescription: errorMessage))
             }
             else {
-                completion(result: failure("Could not parse reply"))
+                completion(SmappeeError.TokenResponseParseError.errorResult())
             }
         }
         else if let error = error {
-            completion(result: failure(error.description))
+            completion(SmappeeError.UnexpectedHTTPResponseError.errorResult(underlyingError: error))
         }
         else {
-            completion(result: failure("Internal error"))
+            completion(SmappeeError.InternalError.errorResult())
         }
     }
 }
 
-private func sendRequest(request: NSURLRequest, accessToken: String, completion: (InternalRequestResult) -> Void) {
+private func sendRequest(request: NSURLRequest, accessToken: String, completion: (SmappeeRequestResult) -> Void) {
     
     let mutableRequest = request.mutableCopy() as! NSMutableURLRequest
     mutableRequest.setValue("Bearer " + accessToken, forHTTPHeaderField: "Authorization")
@@ -183,18 +179,25 @@ private func sendRequest(request: NSURLRequest, accessToken: String, completion:
             switch httpResponse.statusCode {
             case 200:
                 let json = JSON(data: data)
-                if json.null != nil {
-                    completion(.Failure("Could not parse JSON"))
+
+                // You _could_ argue that this is an error, but some Smappee request return a 0-byte response instead of
+                // an empty JSON structure. We interpret 0 bytes as being an empty JSON value
+                if data.length == 0 {
+                    completion(success(json))
+                }
+                else if json.null != nil {
+                    // In case SwiftyJSON supplies us with a parse error in the .error value, then we pass it on to the error result
+                    completion(SmappeeError.InvalidJSONError.errorResult(underlyingError: json.error))
                 }
                 else {
-                    completion(.Success(json))
+                    completion(success(json))
                 }
                 
             case 401:
-                completion(.AccessTokenExpired)
+                completion(SmappeeError.AccessTokenExpiredError.errorResult())
                 
             default:
-                completion(.Failure("Unexpected HTTP status response \(httpResponse.statusCode)"))
+                completion(SmappeeError.UnexpectedHTTPResponseError.errorResult(errorDescription: "Unexpected HTTP status response \(httpResponse.statusCode)", underlyingError: error))
             }
         }
         else if let error = error {
@@ -202,14 +205,14 @@ private func sendRequest(request: NSURLRequest, accessToken: String, completion:
             // Error code -1012 means 'User cancelled authentication'. It appears that this can be the case when
             // the reason is actually an expired access token.
             if error.code == -1012 && error.domain == NSURLErrorDomain {
-                completion(.AccessTokenExpired)
+                completion(SmappeeError.AccessTokenExpiredError.errorResult())
             }
             else {
-                completion(.Failure(error.description))
+                completion(SmappeeError.UnexpectedHTTPResponseError.errorResult(underlyingError: error))
             }
         }
         else {
-            completion(.Failure("Internal error - response is not a HTTP response"))
+            completion(SmappeeError.InternalError.errorResult(errorDescription: "Internal error - response is not a HTTP response"))
         }
     })
 }
