@@ -29,11 +29,27 @@ class ViewController: UIViewController, SmappeeControllerDelegate, LoginViewCont
         
         // Reference to self must happen after super.init call
         smappeeController.delegate = self
+        
+        // Try calling the Smappee API _before_ this view controller is on screen - in order to test
+        // delaying the presentation of the login UI
+        getActuator()
     }
     
     // MARK: SmappeeControllerDelegate method
+    // In case we are not ready to display login view we just store the completion block and try this again when
+    // the view is on screen
     func loginWithCompletion(completion: (SmappeeCredentialsResult) -> Void) {
         loginCompletion = completion
+        presentLoginUI()
+    }
+    
+    func presentLoginUI() {
+        if !self.isViewLoaded() || self.view.window == nil {
+            return
+        }
+        if loginCompletion == nil {
+            return
+        }
         
         let loginViewController = self.storyboard?.instantiateViewControllerWithIdentifier("loginViewController") as? LoginViewController
         
@@ -51,10 +67,10 @@ class ViewController: UIViewController, SmappeeControllerDelegate, LoginViewCont
     
     func loginViewController(loginViewController: LoginViewController, didReturnUsername username: String, password: String) {
 
-        self.dismissViewControllerAnimated(true, completion: nil)
-
         loginCompletion?(smappeeLoginSuccess(username, password))
         loginCompletion = nil
+
+        self.dismissViewControllerAnimated(true, completion: nil)
     }
 
     // MARK: ViewController life-cycle methods
@@ -72,6 +88,12 @@ class ViewController: UIViewController, SmappeeControllerDelegate, LoginViewCont
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         updateButtonStates()
+    }
+    override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated)
+        if loginCompletion != nil {
+            presentLoginUI()
+        }
     }
     
     func updateButtonStates() {
@@ -116,6 +138,7 @@ class ViewController: UIViewController, SmappeeControllerDelegate, LoginViewCont
     @IBAction func logoutAction(sender: AnyObject) {
         smappeeController.logOut()
         serviceLocation = nil
+        serviceLocationInfo = nil
         actuator = nil
         updateButtonStates()
     }
