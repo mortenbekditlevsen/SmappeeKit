@@ -9,8 +9,9 @@
 import UIKit
 import SmappeeKit
 
-class ViewController: UIViewController, SmappeeControllerDelegate, LoginViewControllerDelegate {
+class ViewController: UIViewController, SmappeeControllerDelegate, SmappeeControllerLoginStateDelegate, LoginViewControllerDelegate {
 
+    var loginViewController : LoginViewController?
     let smappeeController: SmappeeController
     var serviceLocation: ServiceLocation?
     var serviceLocationInfo: ServiceLocationInfo?
@@ -29,10 +30,22 @@ class ViewController: UIViewController, SmappeeControllerDelegate, LoginViewCont
         
         // Reference to self must happen after super.init call
         smappeeController.delegate = self
+        smappeeController.loginStateDelegate = self
         
         // Try calling the Smappee API _before_ this view controller is on screen - in order to test
         // delaying the presentation of the login UI
         getActuator()
+    }
+    
+    func loginStateChangedFrom(loginState oldLoginState: SmappeeLoginState, toLoginState newLoginState: SmappeeLoginState) {
+        switch newLoginState {
+        case .LoggedIn:
+            if let loginViewController = loginViewController {
+                loginViewController.dismissViewControllerAnimated(true) {}
+                self.loginViewController = nil
+            }
+        default: ()
+        }
     }
     
     // MARK: SmappeeControllerDelegate method
@@ -44,6 +57,12 @@ class ViewController: UIViewController, SmappeeControllerDelegate, LoginViewCont
     }
     
     func presentLoginUI() {
+        if let loginViewController = loginViewController {
+            // Signal to the user that the username or password was bad
+            loginViewController.invalidUsernameOrPassword()
+            return
+        }
+        
         if !self.isViewLoaded() || self.view.window == nil {
             return
         }
@@ -51,7 +70,7 @@ class ViewController: UIViewController, SmappeeControllerDelegate, LoginViewCont
             return
         }
         
-        let loginViewController = self.storyboard?.instantiateViewControllerWithIdentifier("loginViewController") as? LoginViewController
+        loginViewController = self.storyboard?.instantiateViewControllerWithIdentifier("loginViewController") as? LoginViewController
         
         if let loginViewController = loginViewController {
             loginViewController.delegate = self
@@ -66,11 +85,19 @@ class ViewController: UIViewController, SmappeeControllerDelegate, LoginViewCont
     // MARK: LoginViewControllerDelegate method
     
     func loginViewController(loginViewController: LoginViewController, didReturnUsername username: String, password: String) {
-
         loginCompletion?(smappeeLoginSuccess(username, password))
         loginCompletion = nil
-
-        self.dismissViewControllerAnimated(true, completion: nil)
+        // Don't dismiss the login view controller just yet - the user may have typed a bad username or password
+        // Instead let the login view controller disappear when the login state changes to 'LoggedIn'
+    }
+    
+    func loginViewControllerDidCancel() {
+        loginCompletion?(smappeeLoginFailure("User cancelled login"))
+        loginCompletion = nil
+        if let loginViewController = loginViewController {
+            loginViewController.dismissViewControllerAnimated(true, completion: nil)
+            self.loginViewController = nil
+        }
     }
 
     // MARK: ViewController life-cycle methods
@@ -219,7 +246,7 @@ class ViewController: UIViewController, SmappeeControllerDelegate, LoginViewCont
                 if let consumptions = r.value {
                     for consumption in consumptions {
                         let date = formatter.stringFromDate(consumption.timestamp)
-                        println("Event: \(consumption.consumption) - \(consumption.alwaysOn) - \(date)")
+                        println("Consumption: \(consumption.consumption) - \(consumption.alwaysOn) - \(date)")
                     }
                 }
             }

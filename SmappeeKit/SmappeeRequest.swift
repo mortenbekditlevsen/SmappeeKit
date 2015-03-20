@@ -81,7 +81,13 @@ class SmappeeRequest {
                     
                 case .Failure(let box):
                     let error = box.unbox
-                    self.completion(failure(error))
+                    if error.domain == SmappeeErrorDomain && error.code == SmappeeError.InvalidUsernameOrPassword.rawValue {
+                        // Retry immediately when the error is username/password errors
+                        self.loginState = .LoggedOut
+                    }
+                    else {
+                        self.completion(failure(error))
+                    }
                 }
             }
             
@@ -150,10 +156,22 @@ private func sendTokenRequest(tokenRequest: NSURLRequest, completion: (TokenRequ
             }
             else if let error: String = json["error"].string {
                 var errorMessage = error
-                if let errorDescription: String = json["error_description"].string {
+                let errorDescription = json["error_description"].stringValue
+                if count(errorDescription) > 0 {
                     errorMessage += ": \(errorDescription)"
                 }
-                completion(SmappeeError.APIError.errorResult(errorDescription: errorMessage))
+                
+                // Recognize responses that we know are due to invalid username/password combinations
+                if error == "invalid_request" && errorDescription.rangeOfString("Missing parameters:") != nil {
+                    completion(SmappeeError.InvalidUsernameOrPassword.errorResult(errorDescription: errorDescription))
+                }
+                else if error == "invalid username or password" {
+                    completion(SmappeeError.InvalidUsernameOrPassword.errorResult())
+                }
+                else {
+                    // And catch all other possible errors as more 'generic' API errors
+                    completion(SmappeeError.APIError.errorResult(errorDescription: errorMessage))
+                }
             }
             else {
                 completion(SmappeeError.TokenResponseParseError.errorResult())

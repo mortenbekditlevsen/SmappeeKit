@@ -21,6 +21,7 @@ enum SmappeeError : Int {
     case InternalError
     case TokenResponseParseError
     case APIError
+    case InvalidUsernameOrPassword
     case InvalidJSONError
     case AccessTokenExpiredError
     case UserCancelledLoginError
@@ -38,7 +39,7 @@ enum SmappeeError : Int {
         case .InternalError:
             return "Internal error"
         case .TokenResponseParseError:
-            return "Could not parse reply"
+            return "Could not parse token response"
         case .APIError:
             return "Error reported by Smappee API"
         case .InvalidJSONError:
@@ -51,6 +52,8 @@ enum SmappeeError : Int {
             return "Unexpected data"
         case .UnexpectedHTTPResponseError:
             return "Unexpected HTTP response"
+        case .InvalidUsernameOrPassword:
+            return "Invalid username or password"
         }
     }
     
