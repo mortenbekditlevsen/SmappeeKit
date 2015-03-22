@@ -156,7 +156,7 @@ private func sendTokenRequest(tokenRequest: NSURLRequest, completion: (TokenRequ
             }
         }
         else if let error = error {
-            completion(SmappeeError.UnexpectedHTTPResponseError.errorResult(underlyingError: error))
+            completion(failure(error))
         }
         else {
             completion(SmappeeError.InternalError.errorResult())
@@ -197,14 +197,13 @@ private func sendRequest(request: NSURLRequest, accessToken: String, completion:
             }
         }
         else if let error = error {
-            /// TODO: Verify error message
-            // Error code -1012 means 'User cancelled authentication'. It appears that this can be the case when
+            // 'User cancelled authentication'. It appears that this can be the case when
             // the reason is actually an expired access token.
-            if error.code == -1012 && error.domain == NSURLErrorDomain {
+            if error.code == NSURLErrorUserCancelledAuthentication && error.domain == NSURLErrorDomain {
                 completion(SmappeeError.AccessTokenExpired.errorResult())
             }
             else {
-                completion(SmappeeError.UnexpectedHTTPResponseError.errorResult(underlyingError: error))
+                completion(failure(error))
             }
         }
         else {

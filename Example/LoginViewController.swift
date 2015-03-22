@@ -10,8 +10,8 @@ import UIKit
 import SmappeeKit
 
 protocol LoginViewControllerDelegate: class {
-    func loginViewControllerDidLogin()
-    func loginViewControllerDidCancel()
+    func loginViewControllerDidLogin(loginViewController: LoginViewController)
+    func loginViewControllerDidCancel(loginViewController: LoginViewController)
 }
 
 class LoginViewController: UIViewController {
@@ -28,23 +28,27 @@ class LoginViewController: UIViewController {
     }
     
     @IBAction func cancelButtonAction(sender: AnyObject) {
-        delegate?.loginViewControllerDidCancel()
+        delegate?.loginViewControllerDidCancel(self)
     }
     @IBAction func loginButtonAction(sender: AnyObject) {
         smappeeController?.login(usernameTextField.text, password: passwordTextField.text) { r in
             switch r {
             case .Success:
-                self.delegate?.loginViewControllerDidLogin()
+                self.delegate?.loginViewControllerDidLogin(self)
             case .Failure(let box):
                 let error = box.unbox
                 if error.domain == SmappeeErrorDomain && error.code == SmappeeError.InvalidUsernameOrPassword.rawValue {
-                    self.invalidUsernameOrPassword()
+                    self.showError("Invalid username or password")
+                }
+                else {
+                    self.showError(error.localizedDescription)
                 }
             }
         }
     }
     
-    func invalidUsernameOrPassword() {
+    func showError(error: String) {
+        invalidUsernameLabel.text = error
         invalidUsernameLabel.alpha = 1
         UIView.animateWithDuration(2, animations: { () -> Void in
             self.invalidUsernameLabel.alpha = 0

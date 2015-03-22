@@ -9,9 +9,8 @@
 import UIKit
 import SmappeeKit
 
-class ViewController: UIViewController, SmappeeControllerLoginStateDelegate, LoginViewControllerDelegate {
+class ViewController: UIViewController, LoginViewControllerDelegate {
 
-    var loginViewController : LoginViewController?
     let smappeeController: SmappeeController
     var serviceLocation: ServiceLocation?
     var serviceLocationInfo: ServiceLocationInfo?
@@ -27,38 +26,17 @@ class ViewController: UIViewController, SmappeeControllerLoginStateDelegate, Log
         super.init(coder: aDecoder)
         
         // Reference to self must happen after super.init call
-        smappeeController.loginStateDelegate = self
-        
         if smappeeController.isLoggedIn() {
             getActuator()
         }
     }
     
-    func loginStateChangedFrom(loginState oldLoginState: SmappeeLoginState, toLoginState newLoginState: SmappeeLoginState) {
-//        switch newLoginState {
-//        case .LoggedIn:
-//            if let loginViewController = loginViewController {
-//                loginViewController.dismissViewControllerAnimated(true) {}
-//                self.loginViewController = nil
-//            }
-//        default: ()
-//        }
-    }
-    
     func presentLoginUI() {
-        if let loginViewController = loginViewController {
-            // Signal to the user that the username or password was bad
-            loginViewController.invalidUsernameOrPassword()
-            return
-        }
-        
         if !self.isViewLoaded() || self.view.window == nil {
             return
         }
         
-        loginViewController = self.storyboard?.instantiateViewControllerWithIdentifier("loginViewController") as? LoginViewController
-        
-        if let loginViewController = loginViewController {
+        if let loginViewController = self.storyboard?.instantiateViewControllerWithIdentifier("loginViewController") as? LoginViewController {
             loginViewController.delegate = self
             loginViewController.smappeeController = smappeeController
             self.presentViewController(loginViewController, animated: true, completion: nil)
@@ -67,14 +45,12 @@ class ViewController: UIViewController, SmappeeControllerLoginStateDelegate, Log
     
     // MARK: LoginViewControllerDelegate method
     
-    func loginViewControllerDidLogin() {
-        loginViewController?.dismissViewControllerAnimated(true, completion: nil)
-        loginViewController = nil
+    func loginViewControllerDidLogin(loginViewController: LoginViewController) {
+        loginViewController.dismissViewControllerAnimated(true, completion: nil)
     }
     
-    func loginViewControllerDidCancel() {
-        loginViewController?.dismissViewControllerAnimated(true, completion: nil)
-        loginViewController = nil
+    func loginViewControllerDidCancel(loginViewController: LoginViewController) {
+        loginViewController.dismissViewControllerAnimated(true, completion: nil)
     }
 
     // MARK: ViewController life-cycle methods
@@ -92,12 +68,6 @@ class ViewController: UIViewController, SmappeeControllerLoginStateDelegate, Log
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         updateButtonStates()
-    }
-    override func viewDidAppear(animated: Bool) {
-        super.viewDidAppear(animated)
-        if !smappeeController.isLoggedIn() {
-            presentLoginUI()
-        }
     }
     
     func updateButtonStates() {

@@ -94,7 +94,6 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
 
     func configureServiceLocationErrorResponse() {
         let endPoint = serviceLocationEndPoint
-        
         NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, nil, NSError(domain: "ErrorDomain", code: 12345, userInfo: nil))
     }
     
@@ -177,12 +176,11 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
     
     func configureServiceLocationAccessTokenExpiredResponse() {
         let endPoint = serviceLocationEndPoint
-        
-        NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, nil, NSError(domain: NSURLErrorDomain, code: -1012, userInfo: nil))
+        NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, nil, NSError(domain: NSURLErrorDomain, code: NSURLErrorUserCancelledAuthentication, userInfo: nil))
     }
     
     func configureSingleAccessTokenExpiredResponse() {
-        NSURLConnectionMock.sharedInstance.overrideSingleResponse = (nil, nil, NSError(domain: NSURLErrorDomain, code: -1012, userInfo: nil))
+        NSURLConnectionMock.sharedInstance.overrideSingleResponse = (nil, nil, NSError(domain: NSURLErrorDomain, code: NSURLErrorUserCancelledAuthentication, userInfo: nil))
     }
 
     
@@ -268,15 +266,8 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
         configureAccessTokenErrorResponse()
         controller.logOut()
         controller.login("dummyUser", password: "dummyPassword") { r in
-            XCTAssert(r.error?.domain == SmappeeErrorDomain, "Expecting error from SmappeeErrorDomain")
-            XCTAssert(r.error?.code == SmappeeError.UnexpectedHTTPResponseError.rawValue, "Expecting UnexpectedHTTPResponseError")
-            XCTAssert(r.error?.userInfo?[NSUnderlyingErrorKey] != nil, "Expecting an underlying error")
-            if let underlyingError = r.error?.userInfo?[NSUnderlyingErrorKey] as? NSError {
-                XCTAssert(underlyingError.code == 12345, "Expecting specific underlying error")
-            }
-            else {
-                XCTFail("Underlying error is not of type NSError")
-            }
+            XCTAssert(r.error?.domain == "ErrorDomain", "Expecting error from dummy ErrorDomain")
+            XCTAssert(r.error?.code == 12345)
             expectation.fulfill()
         }
         self.waitForExpectationsWithTimeout(10, handler: nil)
@@ -376,17 +367,9 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
         let expectation = self.expectationWithDescription("Request completion expectation")
         configureServiceLocationErrorResponse()
         
-        controller.sendServiceLocationRequest {
-            r in
-            XCTAssert(r.error?.domain == SmappeeErrorDomain, "Expecting error from SmappeeErrorDomain")
-            XCTAssert(r.error?.code == SmappeeError.UnexpectedHTTPResponseError.rawValue, "Expecting UnexpectedHTTPResponseError")
-            XCTAssert(r.error?.userInfo?[NSUnderlyingErrorKey] != nil, "Expecting an underlying error")
-            if let underlyingError = r.error?.userInfo?[NSUnderlyingErrorKey] as? NSError {
-                XCTAssert(underlyingError.code == 12345, "Expecting specific underlying error")
-            }
-            else {
-                XCTFail("Underlying error is not of type NSError")
-            }
+        controller.sendServiceLocationRequest { r in
+            XCTAssert(r.error?.domain == "ErrorDomain", "Expecting error from dummy ErrorDomain")
+            XCTAssert(r.error?.code == 12345)
             expectation.fulfill()
         }
         self.waitForExpectationsWithTimeout(10, handler: nil)
