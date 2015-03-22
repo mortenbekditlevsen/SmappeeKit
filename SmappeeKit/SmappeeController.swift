@@ -12,25 +12,12 @@ public typealias ServiceLocationRequestResult = Result<[ServiceLocation], NSErro
 public typealias ServiceLocationInfoRequestResult = Result<ServiceLocationInfo, NSError>
 public typealias EventsRequestResult = Result<[ApplianceEvent], NSError>
 public typealias ConsumptionRequestResult = Result<[Consumption], NSError>
-public typealias SmappeeCredentialsResult = Result<(username: String, password: String), NSError>
+public typealias LoginRequestResult = Result<SmappeeLoginState, NSError>
 
 // Delegate protocol for supplying login credentials
 
-public protocol SmappeeControllerDelegate: class {
-    func loginWithCompletion(completion: (SmappeeCredentialsResult) -> Void)
-}
-
 public protocol SmappeeControllerLoginStateDelegate: class {
     func loginStateChangedFrom(loginState oldLoginState: SmappeeLoginState, toLoginState newLoginState: SmappeeLoginState)
-}
-
-
-public func smappeeLoginSuccess (username: String, password: String) -> SmappeeCredentialsResult {
-    return success(username: username, password: password)
-}
-
-public func smappeeLoginFailure (errorMessage: String) -> SmappeeCredentialsResult {
-    return SmappeeError.UserCancelledLoginError.errorResult(errorDescription: errorMessage)
 }
 
 /// Login State for the Smappee client
@@ -83,7 +70,6 @@ public class SmappeeController {
     let clientId, clientSecret: String
     private var saveTokens = false
     
-    public weak var delegate: SmappeeControllerDelegate?
     public weak var loginStateDelegate: SmappeeControllerLoginStateDelegate?
     
     var loginState : SmappeeLoginState {
@@ -128,7 +114,7 @@ public class SmappeeController {
     
     /// :returns: *true* if ``loginState`` is ``.LoggedIn`` or ``.AccessTokenExpired``. In both cases we assume that we have, or can get a valid access token
     
-    public func loggedIn() -> Bool {
+    public func isLoggedIn() -> Bool {
         switch loginState {
         case .LoggedOut:
             return false
@@ -140,6 +126,15 @@ public class SmappeeController {
     /// This implicitly clears access and refresh tokens
     public func logOut() {
         loginState = .LoggedOut
+    }
+    
+    public func login(username: String, password: String, completion: LoginRequestResult -> Void) {
+        SmappeeRequest.sendLoginRequest(username, password: password, controller: self) { r in
+            if let loginState = r.value {
+                self.loginState = loginState
+            }
+            completion(r)
+        }
     }
     
     

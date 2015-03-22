@@ -30,7 +30,7 @@ class SmappeeRequest {
     var attempts: Int
     
     init (urlRequest: NSURLRequest, controller: SmappeeController, completion: (SmappeeRequestResult) -> Void) {
-        attempts = 10
+        attempts = 0
         self.controller = controller
         self.urlRequest = urlRequest
         self.completion = completion
@@ -43,9 +43,9 @@ class SmappeeRequest {
     }
     
     func changeState() {
-        attempts--;
-        if (attempts <= 0) {
-            completion(SmappeeError.RequestStateMachineError.errorResult())
+        attempts++;
+        if (attempts >= 10) {
+            completion(SmappeeError.InternalError.errorResult(errorDescription: "State machine is running in circles"))
             return
         }
         
@@ -61,10 +61,10 @@ class SmappeeRequest {
                     
                 case .Failure(let box):
                     let error = box.unbox
-                    // Special handling of AccessTokenExpiredError, since this should just change state - 
+                    // Special handling of AccessTokenExpired, since this should just change state - 
                     // and not result in calling the completion with an error
                     if error.domain == SmappeeErrorDomain &&
-                        error.code == SmappeeError.AccessTokenExpiredError.rawValue {
+                        error.code == SmappeeError.AccessTokenExpired.rawValue {
                         self.loginState = .AccessTokenExpired(tokens.refreshToken)
                     }
                     else {
@@ -73,23 +73,7 @@ class SmappeeRequest {
                 }
             }
         case .LoggedOut:
-            self.getAccessToken { result in
-                switch result {
-                case .Success(let box):
-                    let tokens = box.unbox
-                    self.loginState = .LoggedIn(tokens)
-                    
-                case .Failure(let box):
-                    let error = box.unbox
-                    if error.domain == SmappeeErrorDomain && error.code == SmappeeError.InvalidUsernameOrPassword.rawValue {
-                        // Retry immediately when the error is username/password errors
-                        self.loginState = .LoggedOut
-                    }
-                    else {
-                        self.completion(failure(error))
-                    }
-                }
-            }
+            completion(SmappeeError.NotLoggedIn.errorResult())
             
         case .AccessTokenExpired(let refreshToken):
             self.refreshAccessToken(refreshToken) { result in
@@ -105,30 +89,6 @@ class SmappeeRequest {
             }
         }
     }
-
-    
-    func getAccessToken(completion: TokenRequestResult -> Void) {
-        if let delegate = self.controller.delegate {
-            delegate.loginWithCompletion({ r in
-                r.flatMap(self.sendAccessTokenRequest, completion: completion)
-            })
-        }
-        else {
-            completion(SmappeeError.DelegateMissingError.errorResult())
-        }
-    }
-    
-    
-    func sendAccessTokenRequest (credentials: (username: String, password: String), completion: TokenRequestResult -> Void) {
-        let clientId = controller.clientId
-        let clientSecret = controller.clientSecret
-        
-        let tokenRequest = NSMutableURLRequest.init(URL: NSURL.init(string: SmappeeRequest.tokenEndPoint)!)
-        tokenRequest.HTTPBody = "grant_type=password&client_id=\(clientId)&client_secret=\(clientSecret)&username=\(credentials.username)&password=\(credentials.password)".dataUsingEncoding(NSUTF8StringEncoding)
-        tokenRequest.HTTPMethod = "POST"
-        sendTokenRequest(tokenRequest, completion)
-    }
-    
     
     func refreshAccessToken(refreshToken: String, completion: (result: TokenRequestResult) -> Void) {
         let clientId = controller.clientId
@@ -138,11 +98,29 @@ class SmappeeRequest {
         tokenRequest.HTTPMethod = "POST"
         sendTokenRequest(tokenRequest, completion)
     }
+
+    
+    class func sendLoginRequest (username: String, password: String, controller: SmappeeController, completion: LoginRequestResult -> Void) {
+        let clientId = controller.clientId
+        let clientSecret = controller.clientSecret
+        
+        let tokenRequest = NSMutableURLRequest.init(URL: NSURL.init(string: SmappeeRequest.tokenEndPoint)!)
+        tokenRequest.HTTPBody = "grant_type=password&client_id=\(clientId)&client_secret=\(clientSecret)&username=\(username)&password=\(password)".dataUsingEncoding(NSUTF8StringEncoding)
+        tokenRequest.HTTPMethod = "POST"
+        sendTokenRequest(tokenRequest) { r in
+            switch r {
+            case .Success(let box):
+                let tokens = box.unbox
+                completion(success(.LoggedIn(tokens)))
+            case .Failure(let box):
+                completion(failure(box.unbox))
+            }
+        }
+    }
 }
 
 
 // MARK: Stateless functions
-
 
 private func sendTokenRequest(tokenRequest: NSURLRequest, completion: (TokenRequestResult) -> Void) {
     NSURLConnection.sendAsynchronousRequest(tokenRequest, queue: NSOperationQueue.mainQueue()) {
@@ -170,11 +148,11 @@ private func sendTokenRequest(tokenRequest: NSURLRequest, completion: (TokenRequ
                 }
                 else {
                     // And catch all other possible errors as more 'generic' API errors
-                    completion(SmappeeError.APIError.errorResult(errorDescription: errorMessage))
+                    completion(SmappeeError.UnexpectedDataError.errorResult(errorDescription: errorMessage))
                 }
             }
             else {
-                completion(SmappeeError.TokenResponseParseError.errorResult())
+                completion(SmappeeError.UnexpectedDataError.errorResult(errorDescription: "Could not parse token response"))
             }
         }
         else if let error = error {
@@ -198,21 +176,21 @@ private func sendRequest(request: NSURLRequest, accessToken: String, completion:
             case 200:
                 let json = JSON(data: data)
 
-                // You _could_ argue that this is an error, but some Smappee request return a 0-byte response instead of
+                // You _could_ argue that this is an API error, but some Smappee request return a 0-byte response instead of
                 // an empty JSON structure. We interpret 0 bytes as being an empty JSON value
                 if data.length == 0 {
                     completion(success(json))
                 }
                 else if json.null != nil {
                     // In case SwiftyJSON supplies us with a parse error in the .error value, then we pass it on to the error result
-                    completion(SmappeeError.InvalidJSONError.errorResult(underlyingError: json.error))
+                    completion(SmappeeError.UnexpectedDataError.errorResult(errorDescription: "Invalid JSON", underlyingError: json.error))
                 }
                 else {
                     completion(success(json))
                 }
                 
             case 401:
-                completion(SmappeeError.AccessTokenExpiredError.errorResult())
+                completion(SmappeeError.AccessTokenExpired.errorResult())
                 
             default:
                 completion(SmappeeError.UnexpectedHTTPResponseError.errorResult(errorDescription: "Unexpected HTTP status response \(httpResponse.statusCode)", underlyingError: error))
@@ -223,7 +201,7 @@ private func sendRequest(request: NSURLRequest, accessToken: String, completion:
             // Error code -1012 means 'User cancelled authentication'. It appears that this can be the case when
             // the reason is actually an expired access token.
             if error.code == -1012 && error.domain == NSURLErrorDomain {
-                completion(SmappeeError.AccessTokenExpiredError.errorResult())
+                completion(SmappeeError.AccessTokenExpired.errorResult())
             }
             else {
                 completion(SmappeeError.UnexpectedHTTPResponseError.errorResult(underlyingError: error))

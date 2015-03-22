@@ -7,9 +7,10 @@
 //
 
 import UIKit
+import SmappeeKit
 
 protocol LoginViewControllerDelegate: class {
-    func loginViewController(loginViewController: LoginViewController, didReturnUsername: String, password: String)
+    func loginViewControllerDidLogin()
     func loginViewControllerDidCancel()
 }
 
@@ -19,6 +20,7 @@ class LoginViewController: UIViewController {
     @IBOutlet var passwordTextField: UITextField!
     @IBOutlet var invalidUsernameLabel: UILabel!
     weak var delegate: LoginViewControllerDelegate?
+    var smappeeController: SmappeeController?
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
@@ -29,7 +31,17 @@ class LoginViewController: UIViewController {
         delegate?.loginViewControllerDidCancel()
     }
     @IBAction func loginButtonAction(sender: AnyObject) {
-        delegate?.loginViewController(self, didReturnUsername: usernameTextField.text, password: passwordTextField.text)
+        smappeeController?.login(usernameTextField.text, password: passwordTextField.text) { r in
+            switch r {
+            case .Success:
+                self.delegate?.loginViewControllerDidLogin()
+            case .Failure(let box):
+                let error = box.unbox
+                if error.domain == SmappeeErrorDomain && error.code == SmappeeError.InvalidUsernameOrPassword.rawValue {
+                    self.invalidUsernameOrPassword()
+                }
+            }
+        }
     }
     
     func invalidUsernameOrPassword() {

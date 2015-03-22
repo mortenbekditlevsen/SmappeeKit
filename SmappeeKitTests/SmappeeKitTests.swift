@@ -10,7 +10,7 @@ import UIKit
 import XCTest
 import SwiftyJSON
 
-class SmappeeKitTests: XCTestCase, SmappeeControllerDelegate, SmappeeControllerLoginStateDelegate {
+class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
     
     var controller: SmappeeController? = nil
     var returnLoginError = false
@@ -187,18 +187,9 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerDelegate, SmappeeControllerL
     }
 
     
-    func loginWithCompletion(completion: (SmappeeCredentialsResult) -> Void) {
-        if returnLoginError {
-            completion(smappeeLoginFailure("User cancelled login"))
-        }
-        else {
-            completion(smappeeLoginSuccess("testuser", "testpassword"))
-        }
-    }
-    
     func loginStateChangedFrom(loginState oldLoginState: SmappeeLoginState, toLoginState newLoginState: SmappeeLoginState) {
         // For debugging purposes
-//        println("\nChanged login state from: '\(oldLoginState)' to '\(newLoginState)'\n\n")
+        println("\nChanged login state from: '\(oldLoginState)' to '\(newLoginState)'\n\n")
     }
     
     override func setUp() {
@@ -219,9 +210,8 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerDelegate, SmappeeControllerL
         configureServiceLocationResponse()
         configureServiceLocationInfoResponse()
         
-        controller = SmappeeController(clientId: "xxx", clientSecret: "yyy", saveTokens: false)
+        controller = SmappeeController(clientId: "xxx", clientSecret: "yyy", loginState: .LoggedIn(accessToken: "dummyAccessToken", refreshToken: "dummyRefreshToken"))
 
-        controller?.delegate = self
         controller?.loginStateDelegate = self
         returnLoginError = false
     }
@@ -231,27 +221,8 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerDelegate, SmappeeControllerL
         super.tearDown()
     }
     
-    func testMissingDelegate() {
-        controller?.delegate = nil
-        controller!.sendServiceLocationRequest {
-            r in
-            XCTAssert(r.error?.domain == SmappeeErrorDomain, "Expecting error from SmappeeErrorDomain")
-            XCTAssert(r.error?.code == SmappeeError.DelegateMissingError.rawValue, "Expecting DelegateMissingError")
-            self.expectation?.fulfill()
-        }
-        self.waitForExpectationsWithTimeout(10, handler: nil)
-    }
-    
-    func testDelegateWithUserCancellingLogin() {
-        returnLoginError = true
-        controller!.sendServiceLocationRequest {
-            r in
-            XCTAssert(r.error?.domain == SmappeeErrorDomain, "Expecting error from SmappeeErrorDomain")
-            XCTAssert(r.error?.code == SmappeeError.UserCancelledLoginError.rawValue, "Expecting UserCancelledLoginError")
-            self.expectation?.fulfill()
-        }
-        self.waitForExpectationsWithTimeout(10, handler: nil)
-    }
+    // TODO: Test logout/login flow
+        
     
     func testDelegateLoginSuccess() {
         controller!.sendServiceLocationRequest {
@@ -264,10 +235,10 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerDelegate, SmappeeControllerL
 
     func testAccessTokenUnexpectedJSONResponse() {
         configureAccessTokenUnexpectedJSONResponse()
-        controller!.sendServiceLocationRequest {
-            r in
+        controller!.logOut()
+        controller!.login("dummyUser", password: "dummyPassword") { r in
             XCTAssert(r.error?.domain == SmappeeErrorDomain, "Expecting error from SmappeeErrorDomain")
-            XCTAssert(r.error?.code == SmappeeError.TokenResponseParseError.rawValue, "Expecting TokenResponseParseError")
+            XCTAssert(r.error?.code == SmappeeError.UnexpectedDataError.rawValue, "Expecting UnexpectedDataError")
             self.expectation?.fulfill()
         }
         self.waitForExpectationsWithTimeout(10, handler: nil)
@@ -275,10 +246,10 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerDelegate, SmappeeControllerL
 
     func testAccessTokenInvalidJSONResponse() {
         configureSingleInvalidJSONResponse()
-        controller!.sendServiceLocationRequest {
-            r in
+        controller!.logOut()
+        controller!.login("dummyUser", password: "dummyPassword") { r in
             XCTAssert(r.error?.domain == SmappeeErrorDomain, "Expecting error from SmappeeErrorDomain")
-            XCTAssert(r.error?.code == SmappeeError.TokenResponseParseError.rawValue, "Expecting TokenResponseParseError")
+            XCTAssert(r.error?.code == SmappeeError.UnexpectedDataError.rawValue, "Expecting UnexpectedDataError")
             self.expectation?.fulfill()
         }
         self.waitForExpectationsWithTimeout(10, handler: nil)
@@ -286,8 +257,8 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerDelegate, SmappeeControllerL
 
     func testAccessTokenErrorResponse() {
         configureAccessTokenErrorResponse()
-        controller!.sendServiceLocationRequest {
-            r in
+        controller!.logOut()
+        controller!.login("dummyUser", password: "dummyPassword") { r in
             XCTAssert(r.error?.domain == SmappeeErrorDomain, "Expecting error from SmappeeErrorDomain")
             XCTAssert(r.error?.code == SmappeeError.UnexpectedHTTPResponseError.rawValue, "Expecting UnexpectedHTTPResponseError")
             XCTAssert(r.error?.userInfo?[NSUnderlyingErrorKey] != nil, "Expecting an underlying error")
@@ -322,7 +293,7 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerDelegate, SmappeeControllerL
             self.controller!.sendServiceLocationRequest { r in
                 
                 XCTAssert(r.error?.domain == SmappeeErrorDomain, "Expecting error from SmappeeErrorDomain")
-                XCTAssert(r.error?.code == SmappeeError.RequestStateMachineError.rawValue, "Expecting RequestStateMachineError")
+                XCTAssert(r.error?.code == SmappeeError.InternalError.rawValue, "Expecting RequestStateMachineError")
                 self.expectation?.fulfill()
             }
             
@@ -379,7 +350,7 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerDelegate, SmappeeControllerL
             self.controller!.sendServiceLocationRequest {
                 r in
                 XCTAssert(r.error?.domain == SmappeeErrorDomain, "Expecting error from SmappeeErrorDomain")
-                XCTAssert(r.error?.code == SmappeeError.InvalidJSONError.rawValue, "Expecting InvalidJSONError")
+                XCTAssert(r.error?.code == SmappeeError.UnexpectedDataError.rawValue, "Expecting UnexpectedDataError")
                 self.expectation?.fulfill()
             }
         }
@@ -430,7 +401,7 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerDelegate, SmappeeControllerL
             self.configureSingleInvalidJSONResponse()
             self.controller!.sendServiceLocationInfoRequest(self.serviceLocation) { r in
                 XCTAssert(r.error?.domain == SmappeeErrorDomain, "Expecting error from SmappeeErrorDomain")
-                XCTAssert(r.error?.code == SmappeeError.InvalidJSONError.rawValue, "Expecting InvalidJSONError")
+                XCTAssert(r.error?.code == SmappeeError.UnexpectedDataError.rawValue, "Expecting UnexpectedDataError")
                 self.expectation?.fulfill()
             }
         }
@@ -464,7 +435,7 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerDelegate, SmappeeControllerL
             self.configureSingleInvalidJSONResponse()
             self.controller!.sendConsumptionRequest(self.serviceLocation, from: self.from, to: self.to, aggregation: self.aggregation) { r in
                 XCTAssert(r.error?.domain == SmappeeErrorDomain, "Expecting error from SmappeeErrorDomain")
-                XCTAssert(r.error?.code == SmappeeError.InvalidJSONError.rawValue, "Expecting InvalidJSONError")
+                XCTAssert(r.error?.code == SmappeeError.UnexpectedDataError.rawValue, "Expecting UnexpectedDataError")
                 self.expectation?.fulfill()
             }
         }
@@ -498,7 +469,7 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerDelegate, SmappeeControllerL
             self.configureSingleInvalidJSONResponse()
             self.controller!.sendEventsRequest(self.serviceLocation, appliances: self.appliances, maxNumber: self.maxNumber, from: self.from, to: self.to) { r in
                 XCTAssert(r.error?.domain == SmappeeErrorDomain, "Expecting error from SmappeeErrorDomain")
-                XCTAssert(r.error?.code == SmappeeError.InvalidJSONError.rawValue, "Expecting InvalidJSONError")
+                XCTAssert(r.error?.code == SmappeeError.UnexpectedDataError.rawValue, "Expecting UnexpectedDataError")
                 self.expectation?.fulfill()
             }
         }
@@ -520,7 +491,7 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerDelegate, SmappeeControllerL
             self.configureSingleInvalidJSONResponse()
             self.controller!.sendActuatorRequest(self.actuator, on: true, duration: .FiveMinutes) { r in
                 XCTAssert(r.error?.domain == SmappeeErrorDomain, "Expecting error from SmappeeErrorDomain")
-                XCTAssert(r.error?.code == SmappeeError.InvalidJSONError.rawValue, "Expecting InvalidJSONError")
+                XCTAssert(r.error?.code == SmappeeError.UnexpectedDataError.rawValue, "Expecting UnexpectedDataError")
                 self.expectation?.fulfill()
             }
         }

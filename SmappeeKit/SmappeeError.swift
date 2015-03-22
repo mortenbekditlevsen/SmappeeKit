@@ -14,46 +14,31 @@ public func valueOrError<T>(value: T?, errorDescription: String) -> Result<T, NS
     return valueOrError(value, SmappeeError.UnexpectedDataError.error(errorDescription: errorDescription))
 }
 
-enum SmappeeError : Int {
-    case JSONParseError = 1
-    case RequestStateMachineError
-    case DelegateMissingError
-    case InternalError
-    case TokenResponseParseError
-    case APIError
+public enum SmappeeError : Int {
+    case NotLoggedIn = 1000
     case InvalidUsernameOrPassword
-    case InvalidJSONError
-    case AccessTokenExpiredError
-    case UserCancelledLoginError
+    case AccessTokenExpired
+    case JSONParseError
+    case InternalError
     case UnexpectedDataError
     case UnexpectedHTTPResponseError
     
     func description() -> String {
         switch self {
         case .JSONParseError:
-            return "Error parsing JSON response"
-        case .RequestStateMachineError:
-            return "State machine is running in circles"
-        case .DelegateMissingError:
-            return "No SmappeeControllerDelegate provided"
+            return NSLocalizedString("Error parsing JSON response", comment: "Default error description for JSON parse errors")
         case .InternalError:
-            return "Internal error"
-        case .TokenResponseParseError:
-            return "Could not parse token response"
-        case .APIError:
-            return "Error reported by Smappee API"
-        case .InvalidJSONError:
-            return "Invalid JSON"
-        case .AccessTokenExpiredError:
-            return "Access token expired"
-        case .UserCancelledLoginError:
-            return "User cancelled login"
+            return NSLocalizedString("Internal error", comment: "Default error description for internal errors")
+        case .AccessTokenExpired:
+            return NSLocalizedString("Access token expired", comment: "Default error description for access token expired error")
         case .UnexpectedDataError:
-            return "Unexpected data"
+            return NSLocalizedString("Unexpected data", comment: "Default error description for unexpected data errors")
         case .UnexpectedHTTPResponseError:
-            return "Unexpected HTTP response"
+            return NSLocalizedString("Unexpected HTTP response", comment: "Default error description for unexpected HTTP Response errors")
         case .InvalidUsernameOrPassword:
-            return "Invalid username or password"
+            return NSLocalizedString("Invalid username or password", comment: "Default error description for invalid username or password errors")
+        case .NotLoggedIn:
+            return NSLocalizedString("User is not logged in", comment: "Default error description for not logged in error")
         }
     }
     

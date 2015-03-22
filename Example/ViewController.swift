@@ -9,15 +9,13 @@
 import UIKit
 import SmappeeKit
 
-class ViewController: UIViewController, SmappeeControllerDelegate, SmappeeControllerLoginStateDelegate, LoginViewControllerDelegate {
+class ViewController: UIViewController, SmappeeControllerLoginStateDelegate, LoginViewControllerDelegate {
 
     var loginViewController : LoginViewController?
     let smappeeController: SmappeeController
     var serviceLocation: ServiceLocation?
     var serviceLocationInfo: ServiceLocationInfo?
     var actuator: Actuator?
-    
-    var loginCompletion: ((SmappeeCredentialsResult) -> Void)?
     
     @IBOutlet var serviceLocationsButton: UIButton!
     @IBOutlet var actuatorOnButton: UIButton!
@@ -29,31 +27,22 @@ class ViewController: UIViewController, SmappeeControllerDelegate, SmappeeContro
         super.init(coder: aDecoder)
         
         // Reference to self must happen after super.init call
-        smappeeController.delegate = self
         smappeeController.loginStateDelegate = self
         
-        // Try calling the Smappee API _before_ this view controller is on screen - in order to test
-        // delaying the presentation of the login UI
-        getActuator()
-    }
-    
-    func loginStateChangedFrom(loginState oldLoginState: SmappeeLoginState, toLoginState newLoginState: SmappeeLoginState) {
-        switch newLoginState {
-        case .LoggedIn:
-            if let loginViewController = loginViewController {
-                loginViewController.dismissViewControllerAnimated(true) {}
-                self.loginViewController = nil
-            }
-        default: ()
+        if smappeeController.isLoggedIn() {
+            getActuator()
         }
     }
     
-    // MARK: SmappeeControllerDelegate method
-    // In case we are not ready to display login view we just store the completion block and try this again when
-    // the view is on screen
-    func loginWithCompletion(completion: (SmappeeCredentialsResult) -> Void) {
-        loginCompletion = completion
-        presentLoginUI()
+    func loginStateChangedFrom(loginState oldLoginState: SmappeeLoginState, toLoginState newLoginState: SmappeeLoginState) {
+//        switch newLoginState {
+//        case .LoggedIn:
+//            if let loginViewController = loginViewController {
+//                loginViewController.dismissViewControllerAnimated(true) {}
+//                self.loginViewController = nil
+//            }
+//        default: ()
+//        }
     }
     
     func presentLoginUI() {
@@ -66,38 +55,26 @@ class ViewController: UIViewController, SmappeeControllerDelegate, SmappeeContro
         if !self.isViewLoaded() || self.view.window == nil {
             return
         }
-        if loginCompletion == nil {
-            return
-        }
         
         loginViewController = self.storyboard?.instantiateViewControllerWithIdentifier("loginViewController") as? LoginViewController
         
         if let loginViewController = loginViewController {
             loginViewController.delegate = self
+            loginViewController.smappeeController = smappeeController
             self.presentViewController(loginViewController, animated: true, completion: nil)
-        }
-        else {
-            loginCompletion?(smappeeLoginFailure("Could not present login UI"))
-            loginCompletion = nil
         }
     }
     
     // MARK: LoginViewControllerDelegate method
     
-    func loginViewController(loginViewController: LoginViewController, didReturnUsername username: String, password: String) {
-        loginCompletion?(smappeeLoginSuccess(username, password))
-        loginCompletion = nil
-        // Don't dismiss the login view controller just yet - the user may have typed a bad username or password
-        // Instead let the login view controller disappear when the login state changes to 'LoggedIn'
+    func loginViewControllerDidLogin() {
+        loginViewController?.dismissViewControllerAnimated(true, completion: nil)
+        loginViewController = nil
     }
     
     func loginViewControllerDidCancel() {
-        loginCompletion?(smappeeLoginFailure("User cancelled login"))
-        loginCompletion = nil
-        if let loginViewController = loginViewController {
-            loginViewController.dismissViewControllerAnimated(true, completion: nil)
-            self.loginViewController = nil
-        }
+        loginViewController?.dismissViewControllerAnimated(true, completion: nil)
+        loginViewController = nil
     }
 
     // MARK: ViewController life-cycle methods
@@ -118,7 +95,7 @@ class ViewController: UIViewController, SmappeeControllerDelegate, SmappeeContro
     }
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
-        if loginCompletion != nil {
+        if !smappeeController.isLoggedIn() {
             presentLoginUI()
         }
     }
@@ -127,7 +104,7 @@ class ViewController: UIViewController, SmappeeControllerDelegate, SmappeeContro
         serviceLocationsButton.enabled = serviceLocation == nil
         actuatorOffButton.enabled = actuator != nil
         actuatorOnButton.enabled = actuator != nil
-        logoutButton.enabled = smappeeController.loggedIn()
+        logoutButton.enabled = smappeeController.isLoggedIn()
     }
     
     // Unused code - just to show how 'flatMap' can be used to chain together requests
@@ -147,7 +124,12 @@ class ViewController: UIViewController, SmappeeControllerDelegate, SmappeeContro
     
     // MARK: IB Actions
     @IBAction func serviceLocationsAction(sender: AnyObject) {
-        getActuator()
+        if !smappeeController.isLoggedIn() {
+            presentLoginUI()
+        }
+        else {
+            getActuator()
+        }
     }
     
     @IBAction func actuatorOneOn(sender: AnyObject) {
