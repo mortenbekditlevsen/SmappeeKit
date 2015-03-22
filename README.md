@@ -12,6 +12,10 @@ Furthermore I have implemented a block-based extension of the 'map' concept in L
 
 ### Note ###
 The current version of the source code is made for the Xcode 6.3 beta version of Swift.
+I look very much forward to the release of Xcode 6.3 - and the following release of the xcode6.3 branch of SwiftyJSON. At that point I will add a podspec to SmappeKit so that you can use CocoaPods to install it.
+
+### Also note ###
+In accordance with [The CocoaPods documentation](http://guides.cocoapods.org/using/using-cocoapods.html#should-i-ignore-the-pods-directory-in-source-control), the Pods directory has been committed along with the project.
 
 ### Usage ###
 Using SmappeeKit is really easy. You instantiate a SmappeeController object with the client id and client secret you receive from Smappee (You can write to info@smappee.com and ask for these credentials. Note that the API is for non-commercial use).
@@ -61,10 +65,6 @@ This means that you may chain methods together as follows:
   }
 ```
 This short snippet of code both handles any refreshing of access token depending on whether that is necessary, then gets a list of locations - gets the first of these (emitting an error if it went wrong), sends a location info request, which contains a list of actuators. If no actuators are found it emits an error - otherwise it turns on the actuator. Beautiful, right! ;-)
-
-
-### Also note ###
-In accordance with [The CocoaPods documentation](http://guides.cocoapods.org/using/using-cocoapods.html#should-i-ignore-the-pods-directory-in-source-control), the Pods directory has been committed along with the project.
 
 ### TODO ###
 * ~~Finish this README text~~
