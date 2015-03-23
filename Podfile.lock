@@ -11,7 +11,7 @@ EXTERNAL SOURCES:
 
 CHECKOUT OPTIONS:
   SwiftyJSON:
-    :commit: 0691445da4c4a94484621919c347d7b69f9598fe
+    :commit: 008a09d7ea8b13c03fb59b35c01aad339584a5e1
     :git: https://github.com/SwiftyJSON/SwiftyJSON.git
 
 SPEC CHECKSUMS:

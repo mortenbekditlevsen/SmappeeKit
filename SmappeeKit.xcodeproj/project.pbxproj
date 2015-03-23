@@ -8,10 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		036506FB144AAA29F2E2E814 /* Pods_SmappeeKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8F0AC9058200919BAE51934A /* Pods_SmappeeKit.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
-		3F2AEBAA29DEEBAF5491F7D0 /* Pods.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BCDDB8D1B47C48BCE4A0FC61 /* Pods.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		682010824A8FFC24D5B0C9AA /* Pods_SmappeeKitTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 533D88E33A3B514466BA7D39 /* Pods_SmappeeKitTests.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		790E02C927579EC61E56C839 /* Pods_Example.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7242C692855FF705001A7E26 /* Pods_Example.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
-		8469075174E61BA116CD93AD /* Pods.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BCDDB8D1B47C48BCE4A0FC61 /* Pods.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 		A90168E21AB4A95900423FE3 /* NSURLConnectionMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90168E11AB4A95900423FE3 /* NSURLConnectionMock.swift */; };
 		A93AAF891AAC479F0044FEC8 /* SmappeeKit.h in Headers */ = {isa = PBXBuildFile; fileRef = A93AAF881AAC479F0044FEC8 /* SmappeeKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		A93AAF8F1AAC479F0044FEC8 /* SmappeeKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A93AAF831AAC479F0044FEC8 /* SmappeeKit.framework */; };
@@ -38,7 +36,6 @@
 		A9FDCF9C1AB43EE200BE6717 /* SmappeeAPIEndpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF9A1AB43EE200BE6717 /* SmappeeAPIEndpoints.swift */; };
 		A9FDCFA11AB4886700BE6717 /* ResultUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCFA01AB4886700BE6717 /* ResultUtility.swift */; };
 		A9FDCFA41AB4886A00BE6717 /* ResultUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCFA01AB4886700BE6717 /* ResultUtility.swift */; };
-		C08BDA1D7D39978EB873237D /* Pods.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BCDDB8D1B47C48BCE4A0FC61 /* Pods.framework */; settings = {ATTRIBUTES = (Weak, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -102,7 +99,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8469075174E61BA116CD93AD /* Pods.framework in Frameworks */,
 				036506FB144AAA29F2E2E814 /* Pods_SmappeeKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -112,7 +108,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				A93AAF8F1AAC479F0044FEC8 /* SmappeeKit.framework in Frameworks */,
-				3F2AEBAA29DEEBAF5491F7D0 /* Pods.framework in Frameworks */,
 				682010824A8FFC24D5B0C9AA /* Pods_SmappeeKitTests.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -121,7 +116,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C08BDA1D7D39978EB873237D /* Pods.framework in Frameworks */,
 				790E02C927579EC61E56C839 /* Pods_Example.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -647,7 +641,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -688,7 +682,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.3;
+				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
