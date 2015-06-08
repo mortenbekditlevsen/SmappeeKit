@@ -31,12 +31,12 @@ class LoginViewController: UIViewController {
         delegate?.loginViewControllerDidCancel(self)
     }
     @IBAction func loginButtonAction(sender: AnyObject) {
-        smappeeController?.login(usernameTextField.text, password: passwordTextField.text) { r in
+        smappeeController?.login(usernameTextField.text, password: passwordTextField.text).onComplete { r in
             switch r {
             case .Success:
                 self.delegate?.loginViewControllerDidLogin(self)
             case .Failure(let box):
-                let error = box.unbox
+                let error = box.value
                 if error.domain == SmappeeErrorDomain && error.code == SmappeeError.InvalidUsernameOrPassword.rawValue {
                     self.showError("Invalid username or password")
                 }

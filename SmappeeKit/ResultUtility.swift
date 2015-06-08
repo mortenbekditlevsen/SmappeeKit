@@ -7,16 +7,17 @@
 //
 
 import Foundation
+import Result
 
 func mapOrFail<T,U,E> (array: [T], transform: (T) -> Result<U,E>) -> Result<[U],E> {
     var result = [U]()
     for element in array {
         switch transform(element) {
         case .Success(let box):
-            result.append(box.unbox)
+            result.append(box.value)
         case .Failure(let box):
-            return failure(box.unbox)
+            return Result(error: box.value)
         }
     }
-    return success(result)
+    return Result(value: result)
 }

@@ -7,12 +7,9 @@
 //
 
 import Foundation
+import Result
 
 public let SmappeeErrorDomain = "SmappeeErrorDomain"
-
-public func valueOrError<T>(value: T?, errorDescription: String) -> Result<T, NSError> {
-    return valueOrError(value, SmappeeError.UnexpectedDataError.error(errorDescription: errorDescription))
-}
 
 public enum SmappeeError : Int {
     case NotLoggedIn = 1000
@@ -59,7 +56,7 @@ public enum SmappeeError : Int {
     }
     
     func errorResult<T>(errorDescription: String? = nil, underlyingError: NSError? = nil) -> Result<T,NSError> {
-        return failure(error(errorDescription: errorDescription, underlyingError: underlyingError))
+        return Result(error: error(errorDescription: errorDescription, underlyingError: underlyingError))
     }
 
 }

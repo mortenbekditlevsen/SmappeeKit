@@ -4,15 +4,21 @@
 use_frameworks!
 
 target :SmappeeKit do
-  pod 'SwiftyJSON', :git => 'https://github.com/SwiftyJSON/SwiftyJSON.git', :branch => 'xcode6.3'
+  pod 'SwiftyJSON'
+  pod 'Future' 
+  pod 'Result' 
 end
 
 target :Example do
-  pod 'SwiftyJSON', :git => 'https://github.com/SwiftyJSON/SwiftyJSON.git', :branch => 'xcode6.3'
+  pod 'SwiftyJSON'
+  pod 'Future' 
+  pod 'Result' 
 end
 
 target :SmappeeKitTests do
-  pod 'SwiftyJSON', :git => 'https://github.com/SwiftyJSON/SwiftyJSON.git', :branch => 'xcode6.3'
+  pod 'SwiftyJSON'
+  pod 'Future' 
+  pod 'Result' 
 end
 
 

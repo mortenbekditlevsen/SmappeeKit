@@ -8,23 +8,28 @@
 
 import Foundation
 import SwiftyJSON
+import Result
+import Future
 
-func parseServiceLocations(json: JSON, completion: (Result<[ServiceLocation], NSError>) -> Void) {
+// 'flatmap' fra før sørger for at en funktion, der selv returnerer en future bliver 'mappet'
+// direkte igennem - ellers ville resultat-typen være Future<Future<noget, NSError>, NSError>
+// så hvis du har en metode, der ikke returnerer en future bruger du 'map' og ellers bruger du 'flatMap'
+func parseServiceLocations(json: JSON) -> Future<[ServiceLocation], NSError> {
     let serviceLocations = mapOrFail(json["serviceLocations"].arrayValue) {
         (json: JSON) -> (Result<ServiceLocation, NSError>) in
         
         if let location = ServiceLocation(json: json) {
-            return success(location)
+            return Result(value: location)
         }
         else {
             return SmappeeError.JSONParseError.errorResult(errorDescription: NSLocalizedString("Error parsing Service Locations JSON", comment: "Error parsing Service Locations JSON"))
         }
     }
-    completion(serviceLocations)
+    return Future(result: serviceLocations)
 }
 
 
-func parseEvents(json: JSON, appliances: [Int: Appliance], completion: EventsRequestResult -> Void) {
+func parseEvents(json: JSON, appliances: [Int: Appliance]) -> EventsRequestResult {
     
     let events = mapOrFail(json.arrayValue) {
         (json: JSON) -> (Result<ApplianceEvent, NSError>) in
@@ -33,39 +38,39 @@ func parseEvents(json: JSON, appliances: [Int: Appliance], completion: EventsReq
             id = json["applianceId"].int,
             appliance = appliances[id],
             event = ApplianceEvent(appliance: appliance, json: json) {
-                return success(event)
+                return Result(value: event)
         }
         else {
             return SmappeeError.JSONParseError.errorResult(errorDescription: NSLocalizedString("Error parsing Events JSON", comment: "Error parsing Events JSON"))
         }
     }
-    completion(events)
+    return Future(result: events)
 }
 
 
-func parseConsumptions(json: JSON, completion: ConsumptionRequestResult -> Void) {
+func parseConsumptions(json: JSON) -> ConsumptionRequestResult {
     let consumptions = mapOrFail(json["consumptions"].arrayValue) {
         (json: JSON) -> (Result<Consumption, NSError>) in
         
         if let consumption = Consumption(json: json) {
-            return success(consumption)
+            return Result(value: consumption)
         }
         else {
             return SmappeeError.JSONParseError.errorResult(errorDescription: NSLocalizedString("Error parsing Consumption JSON", comment: "Error parsing Consumption JSON"))
         }
     }
-    completion(consumptions)
+    return Future(result: consumptions)
 }
 
 
-func parseServiceLocationInfo(json: JSON, completion: ServiceLocationInfoRequestResult -> Void) {
-    var serviceLocationInfo : ServiceLocationInfo?
-    
+func parseServiceLocationInfo(json: JSON) -> ServiceLocationInfoRequestResult {
+    let result : Result<ServiceLocationInfo, NSError>
     if let serviceLocationInfo = ServiceLocationInfo(json: json) {
-        completion(success(serviceLocationInfo))
+        result = Result(value: serviceLocationInfo)
     }
     else {
-        completion(SmappeeError.JSONParseError.errorResult(errorDescription: NSLocalizedString("Error parsing Service Location Info JSON", comment: "Error parsing Service Location Info JSON")))
+        result = SmappeeError.JSONParseError.errorResult(errorDescription: NSLocalizedString("Error parsing Service Location Info JSON", comment: "Error parsing Service Location Info JSON"))
     }
+    return Future(result: result)
 }
 

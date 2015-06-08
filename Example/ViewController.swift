@@ -8,6 +8,30 @@
 
 import UIKit
 import SmappeeKit
+import Result
+import Future
+
+func valueOrError<T>(optional: Optional<T>, errorDescription: String) -> Future<T, NSError> {
+    if let value = optional {
+        return Future(value: value)
+    } else {
+        return Future(error: NSError(domain: "", code: 1, userInfo: nil))
+    }
+}
+infix operator ^^^ {
+// Left associativity
+associativity left
+
+// precedence
+precedence 150
+}
+
+// Operator for `valueOrError`
+public func ^^^ <T> (optional: Optional<T>, errorDescription: String) -> Future<T, NSError> {
+    return valueOrError(optional, errorDescription)
+}
+
+
 
 class ViewController: UIViewController, LoginViewControllerDelegate {
 
@@ -80,17 +104,56 @@ class ViewController: UIViewController, LoginViewControllerDelegate {
     // Unused code - just to show how 'flatMap' can be used to chain together requests
     // Just an example - it's probably better if you choose to store intermediate values somehow
     func complexMappingExample() {
-        smappeeController.sendServiceLocationRequest { locations in
-            let firstLocation = locations.flatMap({ valueOrError($0.first, "No service locations found")})
-            firstLocation.flatMap(self.smappeeController.sendServiceLocationInfoRequest) { locationInfo in
-                let firstActuator = locationInfo.flatMap({ valueOrError($0.actuators.first, "No actuators found")})
-                firstActuator.flatMap(self.smappeeController.sendTurnOnRequest) { r in
-                    // r is now a Success or a Failure propagated along from where it first went wrong
-                    println(r)
-                }
-            }
+        let locations = smappeeController.sendServiceLocationRequest()
+        let firstLocation = locations.flatMap(  { $0.first ^^^ "No service locations found" })
+        let locationInfo = firstLocation.flatMap(self.smappeeController.sendServiceLocationInfoRequest)
+        let firstActuator = locationInfo.flatMap({ $0.actuators.first ^^^ "No actuators found"})
+        firstActuator.flatMap(self.smappeeController.sendTurnOnRequest).andThen {
+            r in println(r)
         }
     }
+    
+    // omskrevet til ikke at have midlertidige variable
+    
+    func complexMappingExample2() {
+        smappeeController.sendServiceLocationRequest()
+          .flatMap({ $0.first ^^^ "No service locations found"})
+          .flatMap(self.smappeeController.sendServiceLocationInfoRequest)
+          .flatMap({ $0.actuators.first ^^^ "No actuators found"})
+          .flatMap(self.smappeeController.sendTurnOnRequest).andThen {
+            r in println(r)
+        }
+    }
+    
+    // Omskrevet til at bruge >>- istedet for flatMap
+
+    func complexMappingExample3() {
+        let request = smappeeController.sendServiceLocationRequest() >>-
+            { $0.first ^^^ "No service locations found" } >>-
+            self.smappeeController.sendServiceLocationInfoRequest >>-
+            { $0.actuators.first ^^^ "No actuators found" } >>-
+            self.smappeeController.sendTurnOnRequest
+        
+        request.andThen {
+            r in println(r)
+        }
+    }
+    
+    
+    // Som one-liner
+    
+    // måske lidt svært at læse - men måske skal man bare vænne sig til det
+    func complexMappingExample4() {
+        (smappeeController.sendServiceLocationRequest() >>-
+            { valueOrError($0.first, "No service locations found")} >>-
+            self.smappeeController.sendServiceLocationInfoRequest >>-
+            { valueOrError($0.actuators.first, "No actuators found")} >>-
+            self.smappeeController.sendTurnOnRequest).andThen {
+            r in println(r)
+        }
+    }
+
+
     
     // MARK: IB Actions
     @IBAction func serviceLocationsAction(sender: AnyObject) {
@@ -124,82 +187,76 @@ class ViewController: UIViewController, LoginViewControllerDelegate {
     
     // MARK: SmappeeKit calls
 
-    func getFirstServiceLocation(completion: (Result<ServiceLocation, NSError>) -> Void) {
+    
+    func getFirstServiceLocation() -> Future<ServiceLocation, NSError> {
         if let location = self.serviceLocation {
-            completion(success(location))
+            return Future(value: location)
         }
         else {
-            smappeeController.sendServiceLocationRequest { r in
-                let first = r.flatMap({ valueOrError($0.first, "No service locations found")})
-                self.serviceLocation = first.value
-                completion(first)
+            let locations = smappeeController.sendServiceLocationRequest()
+            let location = locations.flatMap({ valueOrError($0.first, "No service locations found")})
+            location.andThen { r in
+                self.serviceLocation = r.value
                 self.updateButtonStates()
             }
+            return location
         }
     }
 
-    func getServiceLocationInfo(completion: ServiceLocationInfoRequestResult -> Void) {
+    func getServiceLocationInfo() -> ServiceLocationInfoRequestResult {
         if let locationInfo = self.serviceLocationInfo {
-            completion(success(locationInfo))
+            return Future(value: locationInfo)
         }
         else {
-            getFirstServiceLocation { r in
-                r.flatMap(self.smappeeController.sendServiceLocationInfoRequest) { r in
-                    self.serviceLocationInfo = r.value
-                    completion(r)
-                }
+            let location = getFirstServiceLocation()
+            let locationInfo = location.flatMap(self.smappeeController.sendServiceLocationInfoRequest)
+            locationInfo.andThen { r in
+                self.serviceLocationInfo = r.value
             }
+            return locationInfo
         }
     }
 
 
     func getActuator() {
-        getServiceLocationInfo { r in
+        getServiceLocationInfo().onComplete { r in
             self.actuator = r.value?.actuators.first
             self.updateButtonStates()
         }
     }
     
-    func getEventsFromInfo(info: ServiceLocationInfo, completion: EventsRequestResult -> Void) {
-        self.smappeeController.sendEventsRequest(info.serviceLocation, appliances: info.appliances.filter({$0.name == "Nespresso"}), maxNumber: 10, from: NSDate(timeIntervalSinceNow: -3600*24), to: NSDate()) { r in
-            completion(r)
-        }
+    func getEventsFromInfo(info: ServiceLocationInfo) -> EventsRequestResult {
+        return self.smappeeController.sendEventsRequest(info.serviceLocation, appliances: info.appliances.filter({$0.name == "Nespresso"}), maxNumber: 10, from: NSDate(timeIntervalSinceNow: -3600*24), to: NSDate())
     }
     
     func getEvents() {
         let formatter = NSDateFormatter()
         formatter.dateStyle = .ShortStyle
         formatter.timeStyle = .ShortStyle
-        getServiceLocationInfo { r in
-            r.flatMap(self.getEventsFromInfo) { r in
-                if let events = r.value {
-                    for event in events {
-                        let date = formatter.stringFromDate(event.timestamp)
-                        println("Event: \(event.appliance.name) - \(event.activePower) - \(date)")
-                    }
+        getServiceLocationInfo().flatMap(self.getEventsFromInfo).onComplete {
+            r in
+            if let events = r.value {
+                for event in events {
+                    let date = formatter.stringFromDate(event.timestamp)
+                    println("Event: \(event.appliance.name) - \(event.activePower) - \(date)")
                 }
             }
         }
     }
     
-    func getConsumptionFromInfo(info: ServiceLocationInfo, completion: ConsumptionRequestResult -> Void) {
-        self.smappeeController.sendConsumptionRequest(info.serviceLocation, from: NSDate(timeIntervalSinceNow: -3600*24*100), to: NSDate(), aggregation: .Monthly) {
-            r in
-            completion(r)
-        }
+    func getConsumptionFromInfo(info: ServiceLocationInfo) -> ConsumptionRequestResult {
+        return self.smappeeController.sendConsumptionRequest(info.serviceLocation, from: NSDate(timeIntervalSinceNow: -3600*24*100), to: NSDate(), aggregation: .Monthly)
     }
 
     func getConsumption() {
         let formatter = NSDateFormatter()
         formatter.dateStyle = .ShortStyle
         formatter.timeStyle = .ShortStyle
-        getServiceLocationInfo { r in
-            r.flatMap(self.getConsumptionFromInfo) { r in
-                if let consumptions = r.value {
-                    for consumption in consumptions {
-                        let date = formatter.stringFromDate(consumption.timestamp)
-                        println("Consumption: \(consumption.consumption) - \(consumption.alwaysOn) - \(date)")
-                    }
+        getServiceLocationInfo().flatMap(self.getConsumptionFromInfo).onComplete { r in
+            if let consumptions = r.value {
+                for consumption in consumptions {
+                    let date = formatter.stringFromDate(consumption.timestamp)
+                    println("Consumption: \(consumption.consumption) - \(consumption.alwaysOn) - \(date)")
                 }
             }
         }

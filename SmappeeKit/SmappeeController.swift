@@ -7,12 +7,15 @@
 //
 
 import Foundation
+import Result
+import Future
+import SwiftyJSON
 
-public typealias ServiceLocationRequestResult = Result<[ServiceLocation], NSError>
-public typealias ServiceLocationInfoRequestResult = Result<ServiceLocationInfo, NSError>
-public typealias EventsRequestResult = Result<[ApplianceEvent], NSError>
-public typealias ConsumptionRequestResult = Result<[Consumption], NSError>
-public typealias LoginRequestResult = Result<SmappeeLoginState, NSError>
+public typealias ServiceLocationRequestResult = Future<[ServiceLocation], NSError>
+public typealias ServiceLocationInfoRequestResult = Future<ServiceLocationInfo, NSError>
+public typealias EventsRequestResult = Future<[ApplianceEvent], NSError>
+public typealias ConsumptionRequestResult = Future<[Consumption], NSError>
+public typealias LoginRequestResult = Future<SmappeeLoginState, NSError>
 
 // Delegate protocol for supplying login credentials
 
@@ -71,7 +74,7 @@ public class SmappeeController {
     private var saveTokens = false
     
     public weak var loginStateDelegate: SmappeeControllerLoginStateDelegate?
-    
+
     var loginState : SmappeeLoginState {
         didSet {
             loginStateDelegate?.loginStateChangedFrom(loginState: oldValue, toLoginState: loginState)
@@ -111,7 +114,7 @@ public class SmappeeController {
         self.clientSecret = clientSecret
         self.loginState = loginState
     }
-    
+
     /// :returns: *true* if ``loginState`` is ``.LoggedIn`` or ``.AccessTokenExpired``. In both cases we assume that we have, or can get a valid access token
     
     public func isLoggedIn() -> Bool {
@@ -127,43 +130,50 @@ public class SmappeeController {
     public func logOut() {
         loginState = .LoggedOut
     }
-    
-    public func login(username: String, password: String, completion: LoginRequestResult -> Void) {
-        SmappeeRequest.sendLoginRequest(username, password: password, controller: self) { r in
-            if let loginState = r.value {
+
+    public func login(username: String, password: String) -> LoginRequestResult {
+        return SmappeeRequest.sendLoginRequest(username, password: password, controller: self).andThen { result in
+            if let loginState = result.value {
                 self.loginState = loginState
             }
-            completion(r)
         }
     }
-    
-    
+        
+    private func createSmappeeRequest(urlRequest: NSURLRequest) -> SmappeeRequestResult {
+        
+        return Future { completion in
+            
+            SmappeeRequest(urlRequest: urlRequest, controller: self) { r in
+                completion(r)
+            }
+
+            // WTF?!?!?!
+            let a = 1
+        }
+    }
+
     // MARK: API Methods
     
-    public func sendServiceLocationRequest(completion: (Result<[ServiceLocation], NSError>) -> Void) {
+    public func sendServiceLocationRequest() -> Future<[ServiceLocation], NSError> {
         let request = NSURLRequest.init(URL: NSURL.init(string: serviceLocationEndPoint)!)
-        SmappeeRequest(urlRequest: request, controller: self) { r in
-            r.flatMap(parseServiceLocations, completion: completion)
-        }
+        // brug af 'flatmap' til 'chaining'. parseServiceLocations er ikke asynkron, men resultatet
+        // af at 'mappe' er en ny Future
+        return createSmappeeRequest(request).flatMap(parseServiceLocations)
     }
     
-    public func sendServiceLocationInfoRequest(serviceLocation: ServiceLocation, completion: ServiceLocationInfoRequestResult -> Void) {
+    public func sendServiceLocationInfoRequest(serviceLocation: ServiceLocation) -> ServiceLocationInfoRequestResult {
         let endPoint = serviceLocationInfoEndPoint(serviceLocation)
         let request = NSURLRequest.init(URL: NSURL.init(string: endPoint)!)
-        SmappeeRequest(urlRequest: request, controller: self) { r in
-            r.flatMap(parseServiceLocationInfo, completion: completion)
-        }
+        return createSmappeeRequest(request).flatMap(parseServiceLocationInfo)
     }
     
-    public func sendConsumptionRequest(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation, completion: ConsumptionRequestResult -> Void) {
+    public func sendConsumptionRequest(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation) -> ConsumptionRequestResult {
         let endPoint = consumptionEndPoint(serviceLocation, from, to, aggregation)
         let request = NSURLRequest.init(URL: NSURL.init(string: endPoint)!)
-        SmappeeRequest(urlRequest: request, controller: self) { r in
-            r.flatMap(parseConsumptions, completion: completion)
-        }
+        return createSmappeeRequest(request).flatMap(parseConsumptions)
     }
     
-    public func sendEventsRequest(serviceLocation: ServiceLocation, appliances: [Appliance], maxNumber: Int, from: NSDate, to: NSDate, completion: EventsRequestResult -> Void) {
+    public func sendEventsRequest(serviceLocation: ServiceLocation, appliances: [Appliance], maxNumber: Int, from: NSDate, to: NSDate) -> EventsRequestResult {
         // Convert appliances array to a dictionary from the id to the appliance
         let applianceDict : [Int: Appliance] = appliances.reduce([:]) { (var dict, appliance) in
             dict[appliance.id] = appliance
@@ -172,35 +182,33 @@ public class SmappeeController {
 
         let endPoint = eventsEndPoint(serviceLocation, appliances, maxNumber, from, to)
         let request = NSURLRequest.init(URL: NSURL.init(string: endPoint)!)
-        SmappeeRequest(urlRequest: request, controller: self) { r in
-            r.flatMap({parseEvents($0, applianceDict, $1)}, completion: completion)
-        }
+        return createSmappeeRequest(request).flatMap({parseEvents($0, applianceDict)})
     }
     
     public func 💡(actuator: Actuator) {
-        sendTurnOnRequest(actuator, completion: {r in })
+        sendTurnOnRequest(actuator)
     }
     
     // The reason I am overloading here - instead of just supplying default values to 'duration' parameter is that
     // the Result 'flatMap' takes a function with two parameters, input and completion. It does not know how to handle default values of functions
     // Overloading does the trick!
-    public func sendTurnOnRequest(actuator: Actuator, completion: (Result<Void, NSError>) -> Void = { result in }) {
-        sendActuatorRequest(actuator, on: true, duration: .Indefinitely, completion: completion)
+    public func sendTurnOnRequest(actuator: Actuator) -> Future<Void, NSError> {
+        return sendActuatorRequest(actuator, on: true, duration: .Indefinitely)
     }
     
-    public func sendTurnOnRequest(actuator: Actuator, duration: SmappeeActuatorDuration, completion: (Result<Void, NSError>) -> Void = { result in }) {
-        sendActuatorRequest(actuator, on: true, duration: duration, completion: completion)
+    public func sendTurnOnRequest(actuator: Actuator, duration: SmappeeActuatorDuration) ->  Future<Void, NSError> {
+        return sendActuatorRequest(actuator, on: true, duration: duration)
     }
 
-    public func sendTurnOffRequest(actuator: Actuator, completion: (Result<Void, NSError>) -> Void = { result in }) {
-        sendActuatorRequest(actuator, on: false, duration: .Indefinitely, completion: completion)
+    public func sendTurnOffRequest(actuator: Actuator) -> Future<Void, NSError> {
+        return sendActuatorRequest(actuator, on: false, duration: .Indefinitely)
     }
 
-    public func sendTurnOffRequest(actuator: Actuator, duration: SmappeeActuatorDuration, completion: (Result<Void, NSError>) -> Void = { result in }) {
-        sendActuatorRequest(actuator, on: false, duration: duration, completion: completion)
+    public func sendTurnOffRequest(actuator: Actuator, duration: SmappeeActuatorDuration) -> Future<Void, NSError> {
+        return sendActuatorRequest(actuator, on: false, duration: duration)
     }
     
-    public func sendActuatorRequest(actuator: Actuator, on: Bool, duration: SmappeeActuatorDuration, completion: (Result<Void, NSError>) -> Void = { result in }) {
+    public func sendActuatorRequest(actuator: Actuator, on: Bool, duration: SmappeeActuatorDuration) -> Future<Void, NSError> {
         let endPoint = actuatorEndPoint(actuator, on)
         let request = NSMutableURLRequest.init(URL: NSURL.init(string: endPoint)!)
         let durationString: String
@@ -218,9 +226,7 @@ public class SmappeeController {
         // Map from a JSON Result (which is always empty) to a Void Result
         // The map transform function takes two parameters. The first is of type JSON, and is always empty
         // according to the docs. The second is the completion. Simply use 'map' with a transform that calls the completion with 'Void' argument
-        SmappeeRequest(urlRequest: request, controller: self) { r in
-            r.map({$1()}, completion: completion)
-        }
+        return createSmappeeRequest(request).map({f in})
     }
 }
 
