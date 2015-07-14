@@ -1,0 +1,5 @@
+
+github "antitypical/Result" "0.6-beta.1"
+github "mortenbekditlevsen/Future" "master"
+github "mortenbekditlevsen/SwiftyJSON" "xcode7"
+

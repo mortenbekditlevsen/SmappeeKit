@@ -68,7 +68,7 @@ public struct ServiceLocationInfo {
             self.longitude = longitude
             self.latitude = latitude
             
-            for (index, applianceJSON) in json["appliances"] {
+            for (_, applianceJSON) in json["appliances"] {
                 if let appliance = Appliance(serviceLocation: serviceLocation, json: applianceJSON) {
                     appliances.append(appliance)
                 }
@@ -77,7 +77,7 @@ public struct ServiceLocationInfo {
                 }
             }
             
-            for (index, actuatorJSON) in json["actuators"] {
+            for (_, actuatorJSON) in json["actuators"] {
                 if let actuator = Actuator(serviceLocation: serviceLocation, json: actuatorJSON) {
                     actuators.append(actuator)
                 }

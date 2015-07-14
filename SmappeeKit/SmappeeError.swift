@@ -56,7 +56,7 @@ public enum SmappeeError : Int {
     }
     
     func errorResult<T>(errorDescription: String? = nil, underlyingError: NSError? = nil) -> Result<T,NSError> {
-        return Result(error: error(errorDescription: errorDescription, underlyingError: underlyingError))
+        return Result(error: error(errorDescription, underlyingError: underlyingError))
     }
 
 }

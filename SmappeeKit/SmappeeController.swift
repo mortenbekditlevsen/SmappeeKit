@@ -11,11 +11,11 @@ import Result
 import Future
 import SwiftyJSON
 
-public typealias ServiceLocationRequestResult = Future<[ServiceLocation], NSError>
-public typealias ServiceLocationInfoRequestResult = Future<ServiceLocationInfo, NSError>
-public typealias EventsRequestResult = Future<[ApplianceEvent], NSError>
-public typealias ConsumptionRequestResult = Future<[Consumption], NSError>
-public typealias LoginRequestResult = Future<SmappeeLoginState, NSError>
+public typealias ServiceLocationRequestFuture = Future<[ServiceLocation], NSError>
+public typealias ServiceLocationInfoRequestFuture = Future<ServiceLocationInfo, NSError>
+public typealias EventsRequestFuture = Future<[ApplianceEvent], NSError>
+public typealias ConsumptionRequestFuture = Future<[Consumption], NSError>
+public typealias LoginRequestFuture = Future<SmappeeLoginState, NSError>
 
 // Delegate protocol for supplying login credentials
 
@@ -29,7 +29,7 @@ public protocol SmappeeControllerLoginStateDelegate: class {
 /// - ``AccessTokenExpired`` - In this state we know that the access token has expired, but perhaps the refresh token is still valid
 /// - ``LoggedOut`` - In this state we have no valid access or refresh tokens, and we need the user to supply login credentials to log in again
 
-public enum SmappeeLoginState: Printable {
+public enum SmappeeLoginState: CustomStringConvertible {
     case LoggedIn(accessToken: String, refreshToken: String)
     case AccessTokenExpired(String)
     case LoggedOut
@@ -83,7 +83,7 @@ public class SmappeeController {
             }
             switch loginState {
             case .LoggedIn(let (accessToken, refreshToken)):
-                SmappeeController.saveTokens(accessToken: accessToken, refreshToken: refreshToken)
+                SmappeeController.saveTokens(accessToken, refreshToken: refreshToken)
             case .AccessTokenExpired(let refreshToken):
                 SmappeeController.saveTokens(refreshToken: refreshToken)
             case .LoggedOut:
@@ -115,7 +115,7 @@ public class SmappeeController {
         self.loginState = loginState
     }
 
-    /// :returns: *true* if ``loginState`` is ``.LoggedIn`` or ``.AccessTokenExpired``. In both cases we assume that we have, or can get a valid access token
+    /// - returns: *true* if ``loginState`` is ``.LoggedIn`` or ``.AccessTokenExpired``. In both cases we assume that we have, or can get a valid access token
     
     public func isLoggedIn() -> Bool {
         switch loginState {
@@ -131,7 +131,7 @@ public class SmappeeController {
         loginState = .LoggedOut
     }
 
-    public func login(username: String, password: String) -> LoginRequestResult {
+    public func login(username: String, password: String) -> LoginRequestFuture {
         return SmappeeRequest.sendLoginRequest(username, password: password, controller: self).andThen { result in
             if let loginState = result.value {
                 self.loginState = loginState
@@ -139,16 +139,15 @@ public class SmappeeController {
         }
     }
         
-    private func createSmappeeRequest(urlRequest: NSURLRequest) -> SmappeeRequestResult {
+    private func createSmappeeRequest(urlRequest: NSURLRequest) -> SmappeeRequestFuture {
         
         return Future { completion in
+            // Compile error workaround from http://stackoverflow.com/questions/30825869/class-declaration-cannot-close-over-value-fulfill-defined-in-outer-scope-swi
+            let innerCompletion = completion
             
-            SmappeeRequest(urlRequest: urlRequest, controller: self) { r in
-                completion(r)
+            _ = SmappeeRequest(urlRequest: urlRequest, controller: self) { r in
+                innerCompletion(r)
             }
-
-            // WTF?!?!?!
-            let a = 1
         }
     }
 
@@ -161,32 +160,28 @@ public class SmappeeController {
         return createSmappeeRequest(request).flatMap(parseServiceLocations)
     }
     
-    public func sendServiceLocationInfoRequest(serviceLocation: ServiceLocation) -> ServiceLocationInfoRequestResult {
+    public func sendServiceLocationInfoRequest(serviceLocation: ServiceLocation) -> ServiceLocationInfoRequestFuture {
         let endPoint = serviceLocationInfoEndPoint(serviceLocation)
         let request = NSURLRequest.init(URL: NSURL.init(string: endPoint)!)
         return createSmappeeRequest(request).flatMap(parseServiceLocationInfo)
     }
     
-    public func sendConsumptionRequest(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation) -> ConsumptionRequestResult {
-        let endPoint = consumptionEndPoint(serviceLocation, from, to, aggregation)
+    public func sendConsumptionRequest(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation) -> ConsumptionRequestFuture {
+        let endPoint = consumptionEndPoint(serviceLocation, from: from, to: to, aggregation: aggregation)
         let request = NSURLRequest.init(URL: NSURL.init(string: endPoint)!)
         return createSmappeeRequest(request).flatMap(parseConsumptions)
     }
     
-    public func sendEventsRequest(serviceLocation: ServiceLocation, appliances: [Appliance], maxNumber: Int, from: NSDate, to: NSDate) -> EventsRequestResult {
+    public func sendEventsRequest(serviceLocation: ServiceLocation, appliances: [Appliance], maxNumber: Int, from: NSDate, to: NSDate) -> EventsRequestFuture {
         // Convert appliances array to a dictionary from the id to the appliance
         let applianceDict : [Int: Appliance] = appliances.reduce([:]) { (var dict, appliance) in
             dict[appliance.id] = appliance
             return dict
         }
 
-        let endPoint = eventsEndPoint(serviceLocation, appliances, maxNumber, from, to)
+        let endPoint = eventsEndPoint(serviceLocation, appliances: appliances, maxNumber: maxNumber, from: from, to: to)
         let request = NSURLRequest.init(URL: NSURL.init(string: endPoint)!)
-        return createSmappeeRequest(request).flatMap({parseEvents($0, applianceDict)})
-    }
-    
-    public func 💡(actuator: Actuator) {
-        sendTurnOnRequest(actuator)
+        return createSmappeeRequest(request).flatMap({parseEvents($0, appliances: applianceDict)})
     }
     
     // The reason I am overloading here - instead of just supplying default values to 'duration' parameter is that
@@ -209,7 +204,7 @@ public class SmappeeController {
     }
     
     public func sendActuatorRequest(actuator: Actuator, on: Bool, duration: SmappeeActuatorDuration) -> Future<Void, NSError> {
-        let endPoint = actuatorEndPoint(actuator, on)
+        let endPoint = actuatorEndPoint(actuator, on: on)
         let request = NSMutableURLRequest.init(URL: NSURL.init(string: endPoint)!)
         let durationString: String
 
@@ -226,7 +221,9 @@ public class SmappeeController {
         // Map from a JSON Result (which is always empty) to a Void Result
         // The map transform function takes two parameters. The first is of type JSON, and is always empty
         // according to the docs. The second is the completion. Simply use 'map' with a transform that calls the completion with 'Void' argument
-        return createSmappeeRequest(request).map({f in})
+        let future: Future<Void,NSError> = createSmappeeRequest(request).map({_ in})
+        future.onComplete { _ in }
+        return future
     }
 }
 

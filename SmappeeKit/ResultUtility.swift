@@ -13,10 +13,10 @@ func mapOrFail<T,U,E> (array: [T], transform: (T) -> Result<U,E>) -> Result<[U],
     var result = [U]()
     for element in array {
         switch transform(element) {
-        case .Success(let box):
-            result.append(box.value)
-        case .Failure(let box):
-            return Result(error: box.value)
+        case .Success(let value):
+            result.append(value)
+        case .Failure(let error):
+            return Result(error: error)
         }
     }
     return Result(value: result)

@@ -23,15 +23,15 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
     var aggregation : SmappeeAggregation!
     var actuator : Actuator!
 
-    func configureAccessTokenResponse() {
+    func configureAccessTokenResponse() throws {
         let endPoint = SmappeeRequest.tokenEndPoint
-        let data = JSON(["access_token": "testToken", "refresh_token": "testRefreshToken"]).rawData()
+        let data = try JSON(["access_token": "testToken", "refresh_token": "testRefreshToken"]).rawData()
         NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
     }
     
-    func configureAccessTokenUnexpectedJSONResponse() {
+    func configureAccessTokenUnexpectedJSONResponse() throws {
         let endPoint = SmappeeRequest.tokenEndPoint
-        let data = JSON(["wrong_key": "testToken"]).rawData()
+        let data = try JSON(["wrong_key": "testToken"]).rawData()
         NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
     }
     
@@ -45,9 +45,9 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
         NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, nil, NSError(domain: "ErrorDomain", code: 12345, userInfo: nil))
     }
     
-    func configureServiceLocationResponse() {
+    func configureServiceLocationResponse() throws {
         let endPoint = serviceLocationEndPoint
-        let data = JSON(["serviceLocations": [
+        let data = try JSON(["serviceLocations": [
             ["serviceLocationId": 1, "name": "Home"],
             ["serviceLocationId": 2, "name": "Cottage"],
             ["serviceLocationId": 3, "name": "Shop"],
@@ -56,9 +56,9 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
         NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
     }
     
-    func configureServiceLocationUnexpectedJSONResponse() {
+    func configureServiceLocationUnexpectedJSONResponse() throws {
         let endPoint = serviceLocationEndPoint
-        let data = JSON(["serviceLocations": [
+        let data = try JSON(["serviceLocations": [
             ["serviceLocationId": 1, "name": "Home"],
             ["serviceLocationId": 2, "name": "Cottage"],
             ["unexpected": 3],
@@ -67,9 +67,9 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
         NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
     }
     
-    func configureServiceLocationInfoResponse() {
+    func configureServiceLocationInfoResponse() throws {
         let endPoint = serviceLocationInfoEndPoint(serviceLocation)
-        let data = JSON(["serviceLocationId": 1,
+        let data = try JSON(["serviceLocationId": 1,
             "name": "Home",
             "electricityCurrency": "DKK",
             "electricityCost": 2.25,
@@ -80,9 +80,9 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
         NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
     }
     
-    func configureServiceLocationInfoUnexpectedJSONResponse() {
+    func configureServiceLocationInfoUnexpectedJSONResponse() throws {
         let endPoint = serviceLocationInfoEndPoint(serviceLocation)
-        let data = JSON(["serviceLocationId": 1,
+        let data = try JSON(["serviceLocationId": 1,
             "name": "Home",
             "electricityCurrency": "DKK",
             "electricityCost": 2.25,
@@ -97,9 +97,9 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
         NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, nil, NSError(domain: "ErrorDomain", code: 12345, userInfo: nil))
     }
     
-    func configureConsumptionEndPoint(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation) {
-        let endPoint = consumptionEndPoint(serviceLocation, from, to, aggregation)
-        let data = JSON(
+    func configureConsumptionEndPoint(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation) throws {
+        let endPoint = consumptionEndPoint(serviceLocation, from: from, to: to, aggregation: aggregation)
+        let data = try JSON(
             ["consumptions": [
                 ["consumption": 10.0,
                     "alwaysOn": 5.0,
@@ -116,9 +116,9 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
         NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
     }
     
-    func configureConsumptionEndPointUnexpectedJSON(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation) {
-        let endPoint = consumptionEndPoint(serviceLocation, from, to, aggregation)
-        let data = JSON(
+    func configureConsumptionEndPointUnexpectedJSON(serviceLocation: ServiceLocation, from: NSDate, to: NSDate, aggregation: SmappeeAggregation) throws {
+        let endPoint = consumptionEndPoint(serviceLocation, from: from, to: to, aggregation: aggregation)
+        let data = try JSON(
             ["consumptions": [
                 ["consumption": 10.0,
                     "alwaysOn": 5.0,
@@ -135,9 +135,9 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
         NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
     }
     
-    func configureEventsEndPoint(serviceLocation: ServiceLocation, appliances: Array<Appliance>, maxNumber: Int, from: NSDate, to: NSDate) {
-        let endPoint = eventsEndPoint(serviceLocation, appliances, maxNumber, from, to)
-        let data = JSON([
+    func configureEventsEndPoint(serviceLocation: ServiceLocation, appliances: Array<Appliance>, maxNumber: Int, from: NSDate, to: NSDate) throws {
+        let endPoint = eventsEndPoint(serviceLocation, appliances: appliances, maxNumber: maxNumber, from: from, to: to)
+        let data = try JSON([
             ["applianceId": 1,
                 "activePower": 5.0,
                 "timestamp": 1234.0],
@@ -151,9 +151,9 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
         NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
     }
     
-    func configureEventsEndPointUnexpectedJSONResponse(serviceLocation: ServiceLocation, appliances: Array<Appliance>, maxNumber: Int, from: NSDate, to: NSDate) {
-        let endPoint = eventsEndPoint(serviceLocation, appliances, maxNumber, from, to)
-        let data = JSON([
+    func configureEventsEndPointUnexpectedJSONResponse(serviceLocation: ServiceLocation, appliances: Array<Appliance>, maxNumber: Int, from: NSDate, to: NSDate) throws {
+        let endPoint = eventsEndPoint(serviceLocation, appliances: appliances, maxNumber: maxNumber, from: from, to: to)
+        let data = try JSON([
             ["applianceId": 1,
                 "activePower": 5.0,
                 "timestamp": 1234.0],
@@ -167,9 +167,9 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
         NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
     }
 
-    func configureActuatorEndPoint(actuator: Actuator, on: Bool) {
-        let endPoint = actuatorEndPoint(actuator, on)
-        let data = JSON([]).rawData()
+    func configureActuatorEndPoint(actuator: Actuator, on: Bool) throws {
+        let endPoint = actuatorEndPoint(actuator, on: on)
+        let data = try JSON([]).rawData()
         NSURLConnectionMock.sharedInstance.urlMapping[endPoint] = (nil, data, nil)
     }
 
@@ -186,7 +186,7 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
     
     func loginStateChangedFrom(loginState oldLoginState: SmappeeLoginState, toLoginState newLoginState: SmappeeLoginState) {
         // For debugging purposes
-        println("\nChanged login state from: '\(oldLoginState)' to '\(newLoginState)'\n\n")
+        print("\nChanged login state from: '\(oldLoginState)' to '\(newLoginState)'\n\n")
     }
     
     override func setUp() {
@@ -201,10 +201,13 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
         aggregation = .Daily
         actuator = Actuator(serviceLocation: serviceLocation, id: 1, name: "Outdoor lights")
 
-        configureAccessTokenResponse()
-        configureServiceLocationResponse()
-        configureServiceLocationInfoResponse()
-        
+        do {
+            try configureAccessTokenResponse()
+            try configureServiceLocationResponse()
+            try configureServiceLocationInfoResponse()
+        } catch {
+            XCTAssertFalse(true, "Setup failed")
+        }
         controller = SmappeeController(clientId: "xxx", clientSecret: "yyy", loginState: .LoggedIn(accessToken: "dummyAccessToken", refreshToken: "dummyRefreshToken"))
 
         controller.loginStateDelegate = self
@@ -239,7 +242,11 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
 
     func testAccessTokenUnexpectedJSONResponse() {
         let expectation = self.expectationWithDescription("Request completion expectation")
-        configureAccessTokenUnexpectedJSONResponse()
+        do {
+            try configureAccessTokenUnexpectedJSONResponse()
+        } catch {
+            XCTAssertFalse(true, "Configuration error")
+        }
         controller.logOut()
         controller.login("dummyUser", password: "dummyPassword").onComplete { r in
             XCTAssert(r.error?.domain == SmappeeErrorDomain, "Expecting error from SmappeeErrorDomain")
@@ -336,7 +343,11 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
     
     func testServiceLocationEndPointUnexpectedJSON() {
         let expectation = self.expectationWithDescription("Request completion expectation")
-        configureServiceLocationUnexpectedJSONResponse()
+        do {
+            try configureServiceLocationUnexpectedJSONResponse()
+        } catch {
+            XCTAssertFalse(true, "Configuration error")
+        }
         
         controller.sendServiceLocationRequest().onComplete {
             r in
@@ -386,7 +397,11 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
     
     func testServiceLocationInfoEndPointUnexpectedJSON() {
         let expectation = self.expectationWithDescription("Request completion expectation")
-        configureServiceLocationInfoUnexpectedJSONResponse()
+        do {
+            try configureServiceLocationInfoUnexpectedJSONResponse()
+        } catch {
+            XCTAssertFalse(true, "Configuration error")
+        }
         controller.sendServiceLocationInfoRequest(serviceLocation).onComplete { r in
             XCTAssert(r.error?.domain == SmappeeErrorDomain, "Expecting error from SmappeeErrorDomain")
             XCTAssert(r.error?.code == SmappeeError.JSONParseError.rawValue, "Expecting JSONParseError")
@@ -412,7 +427,11 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
 
     func testConsumptionEndPoint() {
         let expectation = self.expectationWithDescription("Request completion expectation")
-        configureConsumptionEndPoint(serviceLocation, from: from, to: to, aggregation: aggregation)
+        do {
+            try configureConsumptionEndPoint(serviceLocation, from: from, to: to, aggregation: aggregation)
+        } catch {
+            XCTAssertFalse(true, "Configuration error")
+        }
         controller.sendConsumptionRequest(serviceLocation, from: from, to: to, aggregation: aggregation).onComplete { r in
             XCTAssert(r.value != nil, "Expecting a correct Consumption result")
             expectation.fulfill()
@@ -422,7 +441,12 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
     
     func testConsumptionEndPointUnexpectedJSON() {
         let expectation = self.expectationWithDescription("Request completion expectation")
-        configureConsumptionEndPointUnexpectedJSON(serviceLocation, from: from, to: to, aggregation: aggregation)
+        do {
+            try configureConsumptionEndPointUnexpectedJSON(serviceLocation, from: from, to: to, aggregation: aggregation)
+        } catch {
+            XCTAssertFalse(true, "Configuration error")
+        }
+
         controller.sendConsumptionRequest(serviceLocation, from: from, to: to, aggregation: aggregation).onComplete { r in
             XCTAssert(r.error?.domain == SmappeeErrorDomain, "Expecting error from SmappeeErrorDomain")
             XCTAssert(r.error?.code == SmappeeError.JSONParseError.rawValue, "Expecting JSONParseError")
@@ -449,7 +473,12 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
 
     func testEventsEndPoint() {
         let expectation = self.expectationWithDescription("Request completion expectation")
-        configureEventsEndPoint(serviceLocation, appliances: appliances, maxNumber: maxNumber, from: from, to: to)
+        do {
+            try configureEventsEndPoint(serviceLocation, appliances: appliances, maxNumber: maxNumber, from: from, to: to)
+        } catch {
+            XCTAssertFalse(true, "Configuration error")
+        }
+
         controller.sendEventsRequest(serviceLocation, appliances: appliances, maxNumber: maxNumber, from: from, to: to).onComplete { r in
             XCTAssert(r.value != nil, "Expecting a correct Events result")
             expectation.fulfill()
@@ -459,7 +488,12 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
     
     func testEventsEndPointUnexpectedJSON() {
         let expectation = self.expectationWithDescription("Request completion expectation")
-        configureEventsEndPointUnexpectedJSONResponse(serviceLocation, appliances: appliances, maxNumber: maxNumber, from: from, to: to)
+        do {
+            try configureEventsEndPointUnexpectedJSONResponse(serviceLocation, appliances: appliances, maxNumber: maxNumber, from: from, to: to)
+        } catch {
+            XCTAssertFalse(true, "Configuration error")
+        }
+
         controller.sendEventsRequest(serviceLocation, appliances: appliances, maxNumber: maxNumber, from: from, to: to).onComplete { r in
             XCTAssert(r.error?.domain == SmappeeErrorDomain, "Expecting error from SmappeeErrorDomain")
             XCTAssert(r.error?.code == SmappeeError.JSONParseError.rawValue, "Expecting JSONParseError")
@@ -485,7 +519,12 @@ class SmappeeKitTests: XCTestCase, SmappeeControllerLoginStateDelegate {
     
     func testActuatorEndPoint() {
         let expectation = self.expectationWithDescription("Request completion expectation")
-        configureActuatorEndPoint(actuator, on: true)
+        do {
+            try configureActuatorEndPoint(actuator, on: true)
+        } catch {
+            XCTAssertFalse(true, "Configuration error")
+        }
+
         controller.sendActuatorRequest(actuator, on: true, duration: .FiveMinutes).onComplete { r in
             XCTAssert(r.value != nil, "Expecting a valid actuator result")
             expectation.fulfill()

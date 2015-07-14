@@ -1,6 +1,0 @@
-framework module Future {
-  umbrella header "Pods-SmappeeKit-Future-umbrella.h"
-
-  export *
-  module * { export * }
-}

@@ -28,7 +28,7 @@ precedence 150
 
 // Operator for `valueOrError`
 public func ^^^ <T> (optional: Optional<T>, errorDescription: String) -> Future<T, NSError> {
-    return valueOrError(optional, errorDescription)
+    return valueOrError(optional, errorDescription: errorDescription)
 }
 
 
@@ -45,8 +45,8 @@ class ViewController: UIViewController, LoginViewControllerDelegate {
     @IBOutlet var actuatorOffButton: UIButton!
     @IBOutlet var logoutButton: UIButton!
     
-    required init(coder aDecoder: NSCoder) {
-        smappeeController = SmappeeController(clientId: "XXX", clientSecret: "YYY")
+    required init?(coder aDecoder: NSCoder) {
+        smappeeController = SmappeeController(clientId: "MortenBek", clientSecret: "qjCFQebMwS")
         super.init(coder: aDecoder)
         
         // Reference to self must happen after super.init call
@@ -109,7 +109,7 @@ class ViewController: UIViewController, LoginViewControllerDelegate {
         let locationInfo = firstLocation.flatMap(self.smappeeController.sendServiceLocationInfoRequest)
         let firstActuator = locationInfo.flatMap({ $0.actuators.first ^^^ "No actuators found"})
         firstActuator.flatMap(self.smappeeController.sendTurnOnRequest).andThen {
-            r in println(r)
+            r in print(r)
         }
     }
     
@@ -121,7 +121,8 @@ class ViewController: UIViewController, LoginViewControllerDelegate {
           .flatMap(self.smappeeController.sendServiceLocationInfoRequest)
           .flatMap({ $0.actuators.first ^^^ "No actuators found"})
           .flatMap(self.smappeeController.sendTurnOnRequest).andThen {
-            r in println(r)
+            r in
+            print(r)
         }
     }
     
@@ -135,7 +136,7 @@ class ViewController: UIViewController, LoginViewControllerDelegate {
             self.smappeeController.sendTurnOnRequest
         
         request.andThen {
-            r in println(r)
+            r in print(r)
         }
     }
     
@@ -145,11 +146,11 @@ class ViewController: UIViewController, LoginViewControllerDelegate {
     // måske lidt svært at læse - men måske skal man bare vænne sig til det
     func complexMappingExample4() {
         (smappeeController.sendServiceLocationRequest() >>-
-            { valueOrError($0.first, "No service locations found")} >>-
+            { valueOrError($0.first, errorDescription: "No service locations found")} >>-
             self.smappeeController.sendServiceLocationInfoRequest >>-
-            { valueOrError($0.actuators.first, "No actuators found")} >>-
+            { valueOrError($0.actuators.first, errorDescription: "No actuators found")} >>-
             self.smappeeController.sendTurnOnRequest).andThen {
-            r in println(r)
+            r in print(r)
         }
     }
 
@@ -194,57 +195,72 @@ class ViewController: UIViewController, LoginViewControllerDelegate {
         }
         else {
             let locations = smappeeController.sendServiceLocationRequest()
-            let location = locations.flatMap({ valueOrError($0.first, "No service locations found")})
-            location.andThen { r in
+            let location = locations.flatMap({ valueOrError($0.first, errorDescription: "No service locations found")})
+            return location.andThen { r in
                 self.serviceLocation = r.value
                 self.updateButtonStates()
             }
-            return location
         }
     }
 
-    func getServiceLocationInfo() -> ServiceLocationInfoRequestResult {
+    func getServiceLocationInfo() -> ServiceLocationInfoRequestFuture {
         if let locationInfo = self.serviceLocationInfo {
             return Future(value: locationInfo)
         }
         else {
             let location = getFirstServiceLocation()
             let locationInfo = location.flatMap(self.smappeeController.sendServiceLocationInfoRequest)
-            locationInfo.andThen { r in
-                self.serviceLocationInfo = r.value
+            return locationInfo.andThen { r in
+                
+                // Use Result 'dematerialize' to convert a result it's value - throwing if it contains an error
+                do {
+                    self.serviceLocationInfo = try r.dematerialize()
+                } catch let error {
+                    print(error)
+                }
             }
-            return locationInfo
         }
     }
 
 
     func getActuator() {
         getServiceLocationInfo().onComplete { r in
-            self.actuator = r.value?.actuators.first
+            do {
+                self.actuator = try r.dematerialize().actuators.first
+            } catch let error {
+                print(error)
+            }
+
             self.updateButtonStates()
         }
     }
     
-    func getEventsFromInfo(info: ServiceLocationInfo) -> EventsRequestResult {
-        return self.smappeeController.sendEventsRequest(info.serviceLocation, appliances: info.appliances.filter({$0.name == "Nespresso"}), maxNumber: 10, from: NSDate(timeIntervalSinceNow: -3600*24), to: NSDate())
+    func getEventsFromInfo(info: ServiceLocationInfo) -> EventsRequestFuture {
+        return self.smappeeController.sendEventsRequest(info.serviceLocation, appliances: info.appliances.filter({$0.name == "Nespresso"}), maxNumber: 10, from: NSDate(timeIntervalSinceNow: -3600*24*10), to: NSDate())
     }
     
     func getEvents() {
         let formatter = NSDateFormatter()
         formatter.dateStyle = .ShortStyle
         formatter.timeStyle = .ShortStyle
-        getServiceLocationInfo().flatMap(self.getEventsFromInfo).onComplete {
-            r in
-            if let events = r.value {
+        getServiceLocationInfo().flatMap(self.getEventsFromInfo).onComplete { r in
+            
+            do {
+                
+                let events = try r.dematerialize()
                 for event in events {
                     let date = formatter.stringFromDate(event.timestamp)
-                    println("Event: \(event.appliance.name) - \(event.activePower) - \(date)")
+                    print("Event: \(event.appliance.name) - \(event.activePower) - \(date)")
                 }
+                
+            } catch let error {
+                print(error)
             }
+
         }
     }
     
-    func getConsumptionFromInfo(info: ServiceLocationInfo) -> ConsumptionRequestResult {
+    func getConsumptionFromInfo(info: ServiceLocationInfo) -> ConsumptionRequestFuture {
         return self.smappeeController.sendConsumptionRequest(info.serviceLocation, from: NSDate(timeIntervalSinceNow: -3600*24*100), to: NSDate(), aggregation: .Monthly)
     }
 
@@ -253,22 +269,28 @@ class ViewController: UIViewController, LoginViewControllerDelegate {
         formatter.dateStyle = .ShortStyle
         formatter.timeStyle = .ShortStyle
         getServiceLocationInfo().flatMap(self.getConsumptionFromInfo).onComplete { r in
-            if let consumptions = r.value {
+            
+            do {
+                let consumptions = try r.dematerialize()
+                
                 for consumption in consumptions {
                     let date = formatter.stringFromDate(consumption.timestamp)
-                    println("Consumption: \(consumption.consumption) - \(consumption.alwaysOn) - \(date)")
+                    print("Consumption: \(consumption.consumption) - \(consumption.alwaysOn) - \(date)")
                 }
+            } catch let error {
+                print(error)
             }
         }
     }
     
     func actuatorOn(actuator: Actuator) {
-        smappeeController.💡(actuator)
+        smappeeController.sendTurnOnRequest(actuator)
+        getConsumption()
     }
     
     func actuatorOff(actuator: Actuator) {
-        
         smappeeController.sendTurnOffRequest(actuator)
+        getEvents()
     }
 
 

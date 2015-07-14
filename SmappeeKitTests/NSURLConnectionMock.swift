@@ -63,7 +63,7 @@ extension NSURLConnection {
                 NSRunLoop.currentRunLoop().runUntilDate(NSDate(timeIntervalSinceNow: 0.05))
                 handler(response, parameters.data, parameters.error)
             }
-            else if let parameters = NSURLConnectionMock.sharedInstance.urlMapping[request.URL!.absoluteString!] {
+            else if let parameters = NSURLConnectionMock.sharedInstance.urlMapping[request.URL!.absoluteString] {
                 
                 var response = parameters.response
                 if response == nil {

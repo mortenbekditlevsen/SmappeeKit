@@ -11,9 +11,8 @@ import SwiftyJSON
 import Result
 import Future
 
-typealias TokenRequestResult = Future<(accessToken: String, refreshToken: String), NSError>
-// Samme konstruktion som 'Result' med en værdi og en 'fejl'-værdi
-typealias SmappeeRequestResult = Future<JSON, NSError>
+typealias TokenRequestFuture = Future<(accessToken: String, refreshToken: String), NSError>
+typealias SmappeeRequestFuture = Future<JSON, NSError>
 
 class SmappeeRequest {
     
@@ -41,29 +40,27 @@ class SmappeeRequest {
         changeState()
     }
     
-    func setAccessToken(tokens: (accessToken: String, refreshToken: String), completion: SmappeeRequestResult -> Void) {
+    func setAccessToken(tokens: (accessToken: String, refreshToken: String), completion: SmappeeRequestFuture -> Void) {
         self.loginState = .LoggedIn(tokens)
     }
     
     func changeState() {
         attempts++;
         if (attempts >= 10) {
-            completion(SmappeeError.InternalError.errorResult(errorDescription: "State machine is running in circles"))
+            completion(SmappeeError.InternalError.errorResult("State machine is running in circles"))
             return
         }
         
         // Any branch in this switch must either result in calling the completion handler or changing the loginState
         switch loginState {
         case .LoggedIn(let tokens):
-            weak var weakSelf = self
-            sendRequest(urlRequest, tokens.accessToken).onComplete { result in
+//            weak var weakSelf = self
+            sendRequest(urlRequest, accessToken: tokens.accessToken).onComplete { result in
                 switch result {
-                case .Success(let box):
-                    let json = box.value
+                case .Success(let json):
                     self.completion(Result(value: json))
                     
-                case .Failure(let box):
-                    let error = box.value
+                case .Failure(let error):
                     // Special handling of AccessTokenExpired, since this should just change state -
                     // and not result in calling the completion with an error
                     if error.domain == SmappeeErrorDomain &&
@@ -82,8 +79,7 @@ class SmappeeRequest {
         case .AccessTokenExpired(let refreshToken):
             self.refreshAccessToken(refreshToken).onComplete { result in
                 switch result {
-                case .Success(let box):
-                    let tokens = box.value
+                case .Success(let tokens):
                     self.loginState = .LoggedIn(tokens)
                     
                 case .Failure:
@@ -94,7 +90,7 @@ class SmappeeRequest {
         }
     }
     
-    func refreshAccessToken(refreshToken: String) -> TokenRequestResult {
+    func refreshAccessToken(refreshToken: String) -> TokenRequestFuture {
         let clientId = controller.clientId
         let clientSecret = controller.clientSecret
         let tokenRequest = NSMutableURLRequest.init(URL: NSURL.init(string: SmappeeRequest.tokenEndPoint)!)
@@ -104,7 +100,7 @@ class SmappeeRequest {
     }
 
     
-    class func sendLoginRequest (username: String, password: String, controller: SmappeeController) -> LoginRequestResult {
+    class func sendLoginRequest (username: String, password: String, controller: SmappeeController) -> LoginRequestFuture {
         
         let clientId = controller.clientId
         let clientSecret = controller.clientSecret
@@ -119,11 +115,12 @@ class SmappeeRequest {
 
 // MARK: Stateless functions
 
-private func sendTokenRequest(tokenRequest: NSURLRequest) -> TokenRequestResult {
+private func sendTokenRequest(tokenRequest: NSURLRequest) -> TokenRequestFuture {
     return Future { completion in
+        
         NSURLConnection.sendAsynchronousRequest(tokenRequest, queue: NSOperationQueue.mainQueue()) {
             
-            (response: NSURLResponse!, data: NSData?, error: NSError?) in
+            (response: NSURLResponse?, data: NSData?, error: NSError?) in
             if let data = data {
                 let json = JSON(data: data)
                 if let accessToken: String = json["access_token"].string,
@@ -133,24 +130,24 @@ private func sendTokenRequest(tokenRequest: NSURLRequest) -> TokenRequestResult 
                 else if let error: String = json["error"].string {
                     var errorMessage = error
                     let errorDescription = json["error_description"].stringValue
-                    if count(errorDescription) > 0 {
+                    if errorDescription.characters.count > 0 {
                         errorMessage += ": \(errorDescription)"
                     }
                     
                     // Recognize responses that we know are due to invalid username/password combinations
                     if error == "invalid_request" && errorDescription.rangeOfString("Missing parameters:") != nil {
-                        completion(SmappeeError.InvalidUsernameOrPassword.errorResult(errorDescription: errorDescription))
+                        completion(SmappeeError.InvalidUsernameOrPassword.errorResult(errorDescription))
                     }
                     else if error == "invalid username or password" {
                         completion(SmappeeError.InvalidUsernameOrPassword.errorResult())
                     }
                     else {
                         // And catch all other possible errors as more 'generic' API errors
-                        completion(SmappeeError.UnexpectedDataError.errorResult(errorDescription: errorMessage))
+                        completion(SmappeeError.UnexpectedDataError.errorResult(errorMessage))
                     }
                 }
                 else {
-                    completion(SmappeeError.UnexpectedDataError.errorResult(errorDescription: "Could not parse token response"))
+                    completion(SmappeeError.UnexpectedDataError.errorResult("Could not parse token response"))
                 }
             }
             else if let error = error {
@@ -163,10 +160,11 @@ private func sendTokenRequest(tokenRequest: NSURLRequest) -> TokenRequestResult 
     }
 }
 
-private func sendRequest(request: NSURLRequest, accessToken: String) -> SmappeeRequestResult {
+private func sendRequest(request: NSURLRequest, accessToken: String) -> SmappeeRequestFuture {
     return Future { completion in
         let mutableRequest = request.mutableCopy() as! NSMutableURLRequest
         mutableRequest.setValue("Bearer " + accessToken, forHTTPHeaderField: "Authorization")
+        // print("Request: \(request)")
         NSURLConnection.sendAsynchronousRequest(mutableRequest, queue: NSOperationQueue.mainQueue(), completionHandler: {
             (response: NSURLResponse?, data: NSData?, error:NSError?) in
             if let httpResponse = response as? NSHTTPURLResponse, data = data {
@@ -182,7 +180,7 @@ private func sendRequest(request: NSURLRequest, accessToken: String) -> SmappeeR
                     }
                     else if json.null != nil {
                         // In case SwiftyJSON supplies us with a parse error in the .error value, then we pass it on to the error result
-                        completion(SmappeeError.UnexpectedDataError.errorResult(errorDescription: "Invalid JSON", underlyingError: json.error))
+                        completion(SmappeeError.UnexpectedDataError.errorResult("Invalid JSON", underlyingError: json.error))
                     }
                     else {
                         completion(Result(value: json))
@@ -192,7 +190,7 @@ private func sendRequest(request: NSURLRequest, accessToken: String) -> SmappeeR
                     completion(SmappeeError.AccessTokenExpired.errorResult())
                     
                 default:
-                    completion(SmappeeError.UnexpectedHTTPResponseError.errorResult(errorDescription: "Unexpected HTTP status response \(httpResponse.statusCode)", underlyingError: error))
+                    completion(SmappeeError.UnexpectedHTTPResponseError.errorResult("Unexpected HTTP status response \(httpResponse.statusCode)", underlyingError: error))
                 }
             }
             else if let error = error {
@@ -206,7 +204,7 @@ private func sendRequest(request: NSURLRequest, accessToken: String) -> SmappeeR
                 }
             }
             else {
-                completion(SmappeeError.InternalError.errorResult(errorDescription: "Internal error - response is not a HTTP response"))
+                completion(SmappeeError.InternalError.errorResult("Internal error - response is not a HTTP response"))
             }
         })
     }
