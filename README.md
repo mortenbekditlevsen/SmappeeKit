@@ -81,5 +81,5 @@ This short snippet of code both handles any refreshing of access token depending
 * ~~Finish this README text~~
 * ~~Add Swift structs to represent the data types returned by the Smappee API~~
 * ~~Add a test suite~~
-* ~~Use LlamaKit Result type~~
-* Add a PodSpec so SmappeeKit can be used with CocoaPods
+* ~~Use LlamaKit Result type~~ (Now uses antitypical/Result instead)
+* ~~Add a PodSpec so SmappeeKit can be used with CocoaPods~~ (Now uses Carthage instead)
