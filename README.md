@@ -1,4 +1,15 @@
 # SmappeeKit
+
+[![Language](http://img.shields.io/badge/language-swift-brightgreen.svg?style=flat
+)](https://developer.apple.com/swift)
+[![Carthage compatible](https://img.shields.io/badge/Carthage-compatible-4BC51D.svg?style=flat)]
+(https://github.com/Carthage/Carthage)
+[![License](http://img.shields.io/badge/license-MIT-lightgrey.svg?style=flat
+)](http://mit-license.org)
+[![Issues](https://img.shields.io/github/issues/nghialv/Future.svg?style=flat
+)](https://github.com/nghialv/Future/issues?state=open)
+
+
 SmappeeKit is an implementation of the [Smappee API](https://smappee.atlassian.net/wiki/display/DEVAPI/SmappeeDevAPI+Home) in Swift.
 This project is dependent on the [SwiftyJSON](https://github.com/SwiftyJSON/SwiftyJSON) library and on my own development fork of [LlamaKit](https://github.com/mortenbekditlevsen/LlamaKit) (until the LlamaKit developers hopefully accept my pull requests! :-)
 
