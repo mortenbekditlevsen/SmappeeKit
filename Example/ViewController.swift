@@ -15,7 +15,7 @@ func valueOrError<T>(optional: Optional<T>, errorDescription: String) -> Future<
     if let value = optional {
         return Future(value: value)
     } else {
-        return Future(error: NSError(domain: "", code: 1, userInfo: nil))
+        return Future(error: NSError(domain: SmappeeErrorDomain, code: 9999, userInfo: ["errorMessage": errorDescription]))
     }
 }
 infix operator ^^^ {
