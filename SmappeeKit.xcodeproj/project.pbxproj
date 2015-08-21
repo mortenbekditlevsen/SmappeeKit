@@ -16,6 +16,17 @@
 		5844FE091B55970B00BF9F35 /* Future.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 580E4FCC1B557E18000C622F /* Future.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5844FE0A1B55970B00BF9F35 /* Result.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 580E4FCD1B557E18000C622F /* Result.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5844FE0B1B55970B00BF9F35 /* SwiftyJSON.framework in CopyFiles */ = {isa = PBXBuildFile; fileRef = 580E4FCE1B557E18000C622F /* SwiftyJSON.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		587FEA371B87D2790079F451 /* Future.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 587FEA341B87D2790079F451 /* Future.framework */; };
+		587FEA381B87D2790079F451 /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 587FEA351B87D2790079F451 /* Result.framework */; };
+		587FEA391B87D2790079F451 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 587FEA361B87D2790079F451 /* SwiftyJSON.framework */; };
+		588BBC951B86225800A01031 /* SmappeeJSONParsing.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF961AB43E8400BE6717 /* SmappeeJSONParsing.swift */; };
+		588BBC961B86225800A01031 /* ResultUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D52FBD1B21EA9D00B48D4C /* ResultUtility.swift */; };
+		588BBC971B86225800A01031 /* SmappeeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AAF9F1AAC47D70044FEC8 /* SmappeeController.swift */; };
+		588BBC981B86225800A01031 /* SmappeeError.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9921D261ABBF39D001340F6 /* SmappeeError.swift */; };
+		588BBC991B86225800A01031 /* SmappeeAPIEndpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF9A1AB43EE200BE6717 /* SmappeeAPIEndpoints.swift */; };
+		588BBC9A1B86225800A01031 /* SmappeeTypes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF901AB43D7D00BE6717 /* SmappeeTypes.swift */; };
+		588BBC9B1B86225800A01031 /* SmappeeRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A9FDCF8E1AB43C5900BE6717 /* SmappeeRequest.swift */; };
+		588BBCA11B86225800A01031 /* SmappeeKit.h in Headers */ = {isa = PBXBuildFile; fileRef = A93AAF881AAC479F0044FEC8 /* SmappeeKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		58A0F7501B5583ED00B3A7A4 /* Future.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 580E4FCC1B557E18000C622F /* Future.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 		58A0F7511B5583ED00B3A7A4 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 580E4FCE1B557E18000C622F /* SwiftyJSON.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 		58A0F7521B5583ED00B3A7A4 /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 580E4FCD1B557E18000C622F /* Result.framework */; settings = {ATTRIBUTES = (Required, ); }; };
@@ -97,6 +108,11 @@
 		580E4FCC1B557E18000C622F /* Future.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Future.framework; path = Carthage/Build/iOS/Future.framework; sourceTree = "<group>"; };
 		580E4FCD1B557E18000C622F /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = Carthage/Build/iOS/Result.framework; sourceTree = "<group>"; };
 		580E4FCE1B557E18000C622F /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/iOS/SwiftyJSON.framework; sourceTree = "<group>"; };
+		587FEA341B87D2790079F451 /* Future.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Future.framework; path = Carthage/Build/watchOS/Future.framework; sourceTree = "<group>"; };
+		587FEA351B87D2790079F451 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = Carthage/Build/watchOS/Result.framework; sourceTree = "<group>"; };
+		587FEA361B87D2790079F451 /* SwiftyJSON.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftyJSON.framework; path = Carthage/Build/watchOS/SwiftyJSON.framework; sourceTree = "<group>"; };
+		587FEA4F1B87D2C40079F451 /* SmappeeKit copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "SmappeeKit copy-Info.plist"; path = "/Users/mortenditlevsen/PrivateProjects/SmappeeKit/SmappeeKit copy-Info.plist"; sourceTree = "<absolute>"; };
+		588BBCA71B86225800A01031 /* SmappeeKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SmappeeKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		58D52FBD1B21EA9D00B48D4C /* ResultUtility.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResultUtility.swift; sourceTree = "<group>"; };
 		A90168E11AB4A95900423FE3 /* NSURLConnectionMock.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSURLConnectionMock.swift; sourceTree = "<group>"; };
 		A93AAF831AAC479F0044FEC8 /* SmappeeKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SmappeeKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -123,6 +139,16 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		588BBC9C1B86225800A01031 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				587FEA371B87D2790079F451 /* Future.framework in Frameworks */,
+				587FEA381B87D2790079F451 /* Result.framework in Frameworks */,
+				587FEA391B87D2790079F451 /* SwiftyJSON.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A93AAF7F1AAC479F0044FEC8 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -160,11 +186,30 @@
 		16A13F7AB731EE837C826486 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				588BBCAF1B86578D00A01031 /* watchOS */,
+				588BBCAE1B86578500A01031 /* iOS */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		588BBCAE1B86578500A01031 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
 				580E4FCC1B557E18000C622F /* Future.framework */,
 				580E4FCD1B557E18000C622F /* Result.framework */,
 				580E4FCE1B557E18000C622F /* SwiftyJSON.framework */,
 			);
-			name = Frameworks;
+			name = iOS;
+			sourceTree = "<group>";
+		};
+		588BBCAF1B86578D00A01031 /* watchOS */ = {
+			isa = PBXGroup;
+			children = (
+				587FEA341B87D2790079F451 /* Future.framework */,
+				587FEA351B87D2790079F451 /* Result.framework */,
+				587FEA361B87D2790079F451 /* SwiftyJSON.framework */,
+			);
+			name = watchOS;
 			sourceTree = "<group>";
 		};
 		A93AAF791AAC479F0044FEC8 = {
@@ -175,6 +220,7 @@
 				A93AB0061AAC526F0044FEC8 /* Example */,
 				A93AAF841AAC479F0044FEC8 /* Products */,
 				16A13F7AB731EE837C826486 /* Frameworks */,
+				587FEA4F1B87D2C40079F451 /* SmappeeKit copy-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -184,6 +230,7 @@
 				A93AAF831AAC479F0044FEC8 /* SmappeeKit.framework */,
 				A93AAF8E1AAC479F0044FEC8 /* SmappeeKitTests.xctest */,
 				A93AB0051AAC526E0044FEC8 /* Example.app */,
+				588BBCA71B86225800A01031 /* SmappeeKit.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -256,6 +303,14 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		588BBCA01B86225800A01031 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				588BBCA11B86225800A01031 /* SmappeeKit.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A93AAF801AAC479F0044FEC8 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -267,6 +322,25 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		588BBC931B86225800A01031 /* SmappeeKit watchOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 588BBCA41B86225800A01031 /* Build configuration list for PBXNativeTarget "SmappeeKit watchOS" */;
+			buildPhases = (
+				588BBC941B86225800A01031 /* Sources */,
+				588BBC9C1B86225800A01031 /* Frameworks */,
+				588BBCA01B86225800A01031 /* Headers */,
+				588BBCA21B86225800A01031 /* Resources */,
+				588BBCA31B86225800A01031 /* Run Script */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "SmappeeKit watchOS";
+			productName = SmappeeKit;
+			productReference = 588BBCA71B86225800A01031 /* SmappeeKit.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 		A93AAF821AAC479F0044FEC8 /* SmappeeKit */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = A93AAF991AAC479F0044FEC8 /* Build configuration list for PBXNativeTarget "SmappeeKit" */;
@@ -361,11 +435,19 @@
 				A93AAF821AAC479F0044FEC8 /* SmappeeKit */,
 				A93AAF8D1AAC479F0044FEC8 /* SmappeeKitTests */,
 				A93AB0041AAC526E0044FEC8 /* Example */,
+				588BBC931B86225800A01031 /* SmappeeKit watchOS */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		588BBCA21B86225800A01031 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A93AAF811AAC479F0044FEC8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -410,9 +492,40 @@
 			shellPath = /bin/sh;
 			shellScript = "/usr/local/bin/carthage copy-frameworks";
 		};
+		588BBCA31B86225800A01031 /* Run Script */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 8;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/Carthage/Build/iOS/Result.framework\n",
+				"$(SRCROOT)/Carthage/Build/iOS/Future.framework",
+				"$(SRCROOT)/Carthage/Build/iOS/SwiftyJSON.framework",
+			);
+			name = "Run Script";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+			shellPath = /bin/sh;
+			shellScript = "/usr/local/bin/carthage copy-frameworks";
+		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		588BBC941B86225800A01031 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				588BBC951B86225800A01031 /* SmappeeJSONParsing.swift in Sources */,
+				588BBC961B86225800A01031 /* ResultUtility.swift in Sources */,
+				588BBC971B86225800A01031 /* SmappeeController.swift in Sources */,
+				588BBC981B86225800A01031 /* SmappeeError.swift in Sources */,
+				588BBC991B86225800A01031 /* SmappeeAPIEndpoints.swift in Sources */,
+				588BBC9A1B86225800A01031 /* SmappeeTypes.swift in Sources */,
+				588BBC9B1B86225800A01031 /* SmappeeRequest.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		A93AAF7E1AAC479F0044FEC8 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -488,6 +601,53 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		588BBCA51B86225800A01031 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_BITCODE = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/watchOS",
+				);
+				INFOPLIST_FILE = "SmappeeKit copy-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "dk.mojoapps.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = SmappeeKit;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		588BBCA61B86225800A01031 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_BITCODE = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/watchOS",
+				);
+				INFOPLIST_FILE = "SmappeeKit copy-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "dk.mojoapps.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = SmappeeKit;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
 		A93AAF971AAC479F0044FEC8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -511,7 +671,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/Carthage/Build/iOS";
+				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
@@ -560,7 +720,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				FRAMEWORK_SEARCH_PATHS = "$(PROJECT_DIR)/Carthage/Build/iOS";
+				FRAMEWORK_SEARCH_PATHS = "";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
@@ -587,6 +747,10 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = SmappeeKit/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
@@ -594,7 +758,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				VALID_ARCHS = "arm64 armv7 armv7s armv7k";
 			};
 			name = Debug;
 		};
@@ -607,13 +770,16 @@
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				ENABLE_BITCODE = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
+				);
 				INFOPLIST_FILE = SmappeeKit/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "dk.mojoapps.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
-				VALID_ARCHS = "arm64 armv7 armv7s armv7k";
 			};
 			name = Release;
 		};
@@ -621,6 +787,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
 				);
@@ -640,6 +807,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				FRAMEWORK_SEARCH_PATHS = (
+					"$(PROJECT_DIR)/Carthage/Build/iOS",
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
 				);
@@ -680,6 +848,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		588BBCA41B86225800A01031 /* Build configuration list for PBXNativeTarget "SmappeeKit watchOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				588BBCA51B86225800A01031 /* Debug */,
+				588BBCA61B86225800A01031 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		A93AAF7D1AAC479F0044FEC8 /* Build configuration list for PBXProject "SmappeeKit" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

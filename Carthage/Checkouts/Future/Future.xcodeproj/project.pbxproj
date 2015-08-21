@@ -7,10 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		8C1D91301B1C2C090074458B /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8C3904A41B1AF19800E4A444 /* Result.framework */; };
+		588BBC8B1B86220800A01031 /* Future.h in Headers */ = {isa = PBXBuildFile; fileRef = 8C977AE21B1AF0B900047BF7 /* Future.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		588BBCAC1B86246D00A01031 /* Future.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C3904A81B1AF20700E4A444 /* Future.swift */; };
+		588BBCAD1B86248400A01031 /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 588BBCA91B8623D800A01031 /* Result.framework */; };
 		8C1D91331B1C30B40074458B /* FutureFunctionalTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C1D91321B1C30B40074458B /* FutureFunctionalTests.swift */; };
 		8C1D91351B1C3EDA0074458B /* TestUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C1D91341B1C3EDA0074458B /* TestUtils.swift */; };
-		8C3904A61B1AF19800E4A444 /* Result.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8C3904A41B1AF19800E4A444 /* Result.framework */; };
 		8C3904A91B1AF20700E4A444 /* Future.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C3904A81B1AF20700E4A444 /* Future.swift */; };
 		8C977AE31B1AF0B900047BF7 /* Future.h in Headers */ = {isa = PBXBuildFile; fileRef = 8C977AE21B1AF0B900047BF7 /* Future.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		8C977AE91B1AF0B900047BF7 /* Future.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8C977ADD1B1AF0B900047BF7 /* Future.framework */; };
@@ -28,9 +29,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		588BBC911B86220800A01031 /* Future.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Future.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		588BBC921B86220800A01031 /* Future copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "Future copy-Info.plist"; path = "/Users/mortenditlevsen/PrivateProjects/MyFuture/Future copy-Info.plist"; sourceTree = "<absolute>"; };
+		588BBCA91B8623D800A01031 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = Carthage/Build/watchOS/Result.framework; sourceTree = "<group>"; };
 		8C1D91321B1C30B40074458B /* FutureFunctionalTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FutureFunctionalTests.swift; sourceTree = "<group>"; };
 		8C1D91341B1C3EDA0074458B /* TestUtils.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TestUtils.swift; sourceTree = "<group>"; };
-		8C3904A41B1AF19800E4A444 /* Result.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Result.framework; path = Carthage/Build/iOS/Result.framework; sourceTree = "<group>"; };
 		8C3904A81B1AF20700E4A444 /* Future.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Future.swift; sourceTree = "<group>"; };
 		8C977ADD1B1AF0B900047BF7 /* Future.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Future.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		8C977AE11B1AF0B900047BF7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -41,11 +44,18 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		588BBC881B86220800A01031 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				588BBCAD1B86248400A01031 /* Result.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8C977AD91B1AF0B900047BF7 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8C3904A61B1AF19800E4A444 /* Result.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -53,7 +63,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8C1D91301B1C2C090074458B /* Result.framework in Frameworks */,
 				8C977AE91B1AF0B900047BF7 /* Future.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -65,9 +74,10 @@
 			isa = PBXGroup;
 			children = (
 				8C977ADF1B1AF0B900047BF7 /* Future */,
-				8C3904A41B1AF19800E4A444 /* Result.framework */,
+				588BBCA91B8623D800A01031 /* Result.framework */,
 				8C977AEC1B1AF0B900047BF7 /* FutureTests */,
 				8C977ADE1B1AF0B900047BF7 /* Products */,
+				588BBC921B86220800A01031 /* Future copy-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -76,6 +86,7 @@
 			children = (
 				8C977ADD1B1AF0B900047BF7 /* Future.framework */,
 				8C977AE81B1AF0B900047BF7 /* FutureTests.xctest */,
+				588BBC911B86220800A01031 /* Future.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -120,6 +131,14 @@
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		588BBC8A1B86220800A01031 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				588BBC8B1B86220800A01031 /* Future.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8C977ADA1B1AF0B900047BF7 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -131,6 +150,25 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		588BBC851B86220800A01031 /* Future watchOS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 588BBC8E1B86220800A01031 /* Build configuration list for PBXNativeTarget "Future watchOS" */;
+			buildPhases = (
+				588BBC861B86220800A01031 /* Sources */,
+				588BBC881B86220800A01031 /* Frameworks */,
+				588BBC8A1B86220800A01031 /* Headers */,
+				588BBC8C1B86220800A01031 /* Resources */,
+				588BBC8D1B86220800A01031 /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Future watchOS";
+			productName = Future;
+			productReference = 588BBC911B86220800A01031 /* Future.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 		8C977ADC1B1AF0B900047BF7 /* Future */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 8C977AF31B1AF0B900047BF7 /* Build configuration list for PBXNativeTarget "Future" */;
@@ -202,11 +240,19 @@
 			targets = (
 				8C977ADC1B1AF0B900047BF7 /* Future */,
 				8C977AE71B1AF0B900047BF7 /* FutureTests */,
+				588BBC851B86220800A01031 /* Future watchOS */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		588BBC8C1B86220800A01031 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8C977ADB1B1AF0B900047BF7 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -224,6 +270,20 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		588BBC8D1B86220800A01031 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/Carthage/Build/watchOS/Result.framework",
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/local/bin/carthage copy-frameworks";
+		};
 		8C1D91311B1C2DF40074458B /* ShellScript */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -255,6 +315,14 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		588BBC861B86220800A01031 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				588BBCAC1B86246D00A01031 /* Future.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8C977AD81B1AF0B900047BF7 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -284,6 +352,51 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		588BBC8F1B86220800A01031 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/watchOS",
+				);
+				INFOPLIST_FILE = "Future copy-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.nghialv.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = Future;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		588BBC901B86220800A01031 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/Carthage/Build/watchOS",
+				);
+				INFOPLIST_FILE = "Future copy-Info.plist";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "com.nghialv.$(PRODUCT_NAME:rfc1034identifier)";
+				PRODUCT_NAME = Future;
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
 		8C977AF11B1AF0B900047BF7 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -327,8 +440,6 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALID_ARCHS = "arm64 armv7 armv7s armv7k";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
@@ -368,9 +479,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
-				VALID_ARCHS = "arm64 armv7 armv7s armv7k";
 				VERSIONING_SYSTEM = "apple-generic";
 				VERSION_INFO_PREFIX = "";
 			};
@@ -458,6 +567,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		588BBC8E1B86220800A01031 /* Build configuration list for PBXNativeTarget "Future watchOS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				588BBC8F1B86220800A01031 /* Debug */,
+				588BBC901B86220800A01031 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		8C977AD71B1AF0B900047BF7 /* Build configuration list for PBXProject "Future" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

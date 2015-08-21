@@ -1,3 +1,3 @@
-github "antitypical/Result" "932ac1aabf6d881ead74c4e6911d1271e95d2859"
-github "mortenbekditlevsen/SwiftyJSON" "e434448629f5ec0ce0361f93b259f94dc2b397fa"
-github "mortenbekditlevsen/Future" "40d60f42bb460eb5f51c91ab304f6ab68014b3d7"
+github "antitypical/Result" "0.6-beta.1"
+github "mortenbekditlevsen/SwiftyJSON" "748938f8fef4fcbac7dc0130f4d91274e9c15938"
+github "mortenbekditlevsen/Future" "31074a29fa36df062f711f71bf8640e64cea8f81"
