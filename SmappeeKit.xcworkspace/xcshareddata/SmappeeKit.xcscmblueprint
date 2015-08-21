@@ -1,0 +1,37 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "9AAAF4482921C0F1C13B96C28D17FB0603F00BD9",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "9AAAF4482921C0F1C13B96C28D17FB0603F00BD9" : 0,
+    "955D3B28C66FA9C53F513F55F8CBBB2F62E53A2C" : 0,
+    "956D2B21DD155C49504BB67697A67F7C5351A353" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "CB8DA9F1-76AF-4D31-90E6-BCFD4A91A6E8",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "9AAAF4482921C0F1C13B96C28D17FB0603F00BD9" : "SmappeeKit",
+    "955D3B28C66FA9C53F513F55F8CBBB2F62E53A2C" : "Future\/",
+    "956D2B21DD155C49504BB67697A67F7C5351A353" : "Result\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "SmappeeKit",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 203,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "SmappeeKit.xcworkspace",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/nghialv\/Future.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "955D3B28C66FA9C53F513F55F8CBBB2F62E53A2C"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/antitypical\/Result.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "956D2B21DD155C49504BB67697A67F7C5351A353"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/mortenbekditlevsen\/SmappeeKit.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "9AAAF4482921C0F1C13B96C28D17FB0603F00BD9"
+    }
+  ]
+}

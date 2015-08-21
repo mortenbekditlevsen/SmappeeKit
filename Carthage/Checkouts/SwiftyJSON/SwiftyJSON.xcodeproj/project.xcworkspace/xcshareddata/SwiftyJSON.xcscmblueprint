@@ -1,0 +1,30 @@
+{
+  "DVTSourceControlWorkspaceBlueprintPrimaryRemoteRepositoryKey" : "9AAAF4482921C0F1C13B96C28D17FB0603F00BD9",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyRepositoryLocationsKey" : {
+
+  },
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyStatesKey" : {
+    "9AAAF4482921C0F1C13B96C28D17FB0603F00BD9" : 0,
+    "C861FC00CEE0F6A6BE81FCFF6785FAA78C58EBB3" : 0
+  },
+  "DVTSourceControlWorkspaceBlueprintIdentifierKey" : "3A573BC4-D26F-4B75-AEB7-A02DA780E705",
+  "DVTSourceControlWorkspaceBlueprintWorkingCopyPathsKey" : {
+    "9AAAF4482921C0F1C13B96C28D17FB0603F00BD9" : "SmappeeKit\/",
+    "C861FC00CEE0F6A6BE81FCFF6785FAA78C58EBB3" : "MySwiftyJSON\/"
+  },
+  "DVTSourceControlWorkspaceBlueprintNameKey" : "SwiftyJSON",
+  "DVTSourceControlWorkspaceBlueprintVersion" : 204,
+  "DVTSourceControlWorkspaceBlueprintRelativePathToProjectKey" : "Carthage\/Checkouts\/SwiftyJSON\/SwiftyJSON.xcodeproj",
+  "DVTSourceControlWorkspaceBlueprintRemoteRepositoriesKey" : [
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/mortenbekditlevsen\/SmappeeKit.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "9AAAF4482921C0F1C13B96C28D17FB0603F00BD9"
+    },
+    {
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryURLKey" : "https:\/\/github.com\/mortenbekditlevsen\/SwiftyJSON.git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositorySystemKey" : "com.apple.dt.Xcode.sourcecontrol.Git",
+      "DVTSourceControlWorkspaceBlueprintRemoteRepositoryIdentifierKey" : "C861FC00CEE0F6A6BE81FCFF6785FAA78C58EBB3"
+    }
+  ]
+}
