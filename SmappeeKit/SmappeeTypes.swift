@@ -31,6 +31,11 @@ public struct ServiceLocation {
     }
 }
 
+extension ServiceLocation : Equatable {}
+public func ==(lhs: ServiceLocation, rhs: ServiceLocation) -> Bool {
+    return lhs.id == rhs.id
+}
+
 public struct ServiceLocationInfo {
     public let serviceLocation: ServiceLocation
     public let electricityCurrency: String
@@ -120,6 +125,11 @@ public struct Actuator {
     }
 }
 
+extension Actuator : Equatable {}
+public func ==(lhs: Actuator, rhs: Actuator) -> Bool {
+    return lhs.id == rhs.id
+}
+
 public struct Appliance {
     public let serviceLocation: ServiceLocation
     public let id: Int
@@ -149,6 +159,11 @@ public struct Appliance {
     }
 }
 
+extension Appliance : Equatable {}
+public func ==(lhs: Appliance, rhs: Appliance) -> Bool {
+    return lhs.id == rhs.id
+}
+
 public struct ApplianceEvent {
     public let appliance: Appliance
     public let activePower: Double
@@ -171,7 +186,11 @@ public struct ApplianceEvent {
             return nil
         }
     }
+}
 
+extension ApplianceEvent : Equatable {}
+public func ==(lhs: ApplianceEvent, rhs: ApplianceEvent) -> Bool {
+    return lhs.appliance == rhs.appliance && lhs.activePower == rhs.activePower && lhs.timestamp.isEqualToDate(rhs.timestamp)
 }
 
 public struct Consumption {
@@ -205,6 +224,10 @@ public struct Consumption {
     }
 }
 
+extension Consumption : Equatable {}
+public func ==(lhs: Consumption, rhs: Consumption) -> Bool {
+    return lhs.alwaysOn == rhs.alwaysOn && lhs.consumption == rhs.consumption && lhs.timestamp.isEqualToDate(rhs.timestamp) && lhs.solar == rhs.solar
+}
 
 public enum SmappeeAggregation: Int {
     case FiveMinutePeriod = 1

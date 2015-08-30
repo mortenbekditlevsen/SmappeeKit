@@ -6,8 +6,6 @@
 //  Copyright (c) 2015 Mojo Apps. All rights reserved.
 //
 
-#import <UIKit/UIKit.h>
-
 //! Project version number for SmappeeKit.
 FOUNDATION_EXPORT double SmappeeKitVersionNumber;
 
