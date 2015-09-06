@@ -209,7 +209,7 @@ private func sendRequest(request: NSURLRequest, accessToken: String) -> SmappeeR
         // print("Request: \(request)")
         
         let session = NSURLSession.sharedSession()
-        session.dataTaskWithRequest(request) {
+        session.dataTaskWithRequest(mutableRequest) {
             (data, response, error) -> Void in
 
 //        NSURLConnection.sendAsynchronousRequest(mutableRequest, queue: NSOperationQueue.mainQueue(), completionHandler: {

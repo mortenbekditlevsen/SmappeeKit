@@ -35,6 +35,8 @@
 		58A0F7551B55851100B3A7A4 /* SwiftyJSON.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 580E4FCE1B557E18000C622F /* SwiftyJSON.framework */; };
 		58D52FBE1B21EA9D00B48D4C /* ResultUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D52FBD1B21EA9D00B48D4C /* ResultUtility.swift */; };
 		58D52FBF1B21EA9D00B48D4C /* ResultUtility.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58D52FBD1B21EA9D00B48D4C /* ResultUtility.swift */; };
+		58ED7FD01B92EF8A00971E55 /* SmappeeKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A93AAF831AAC479F0044FEC8 /* SmappeeKit.framework */; };
+		58ED7FD11B92EF8A00971E55 /* SmappeeKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = A93AAF831AAC479F0044FEC8 /* SmappeeKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		A90168E21AB4A95900423FE3 /* NSURLConnectionMock.swift in Sources */ = {isa = PBXBuildFile; fileRef = A90168E11AB4A95900423FE3 /* NSURLConnectionMock.swift */; };
 		A93AAF8F1AAC479F0044FEC8 /* SmappeeKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A93AAF831AAC479F0044FEC8 /* SmappeeKit.framework */; };
 		A93AAF961AAC479F0044FEC8 /* SmappeeKitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A93AAF951AAC479F0044FEC8 /* SmappeeKitTests.swift */; };
@@ -85,6 +87,7 @@
 				5844FE021B55884800BF9F35 /* Future.framework in Embed Frameworks */,
 				5844FE041B55884800BF9F35 /* Result.framework in Embed Frameworks */,
 				5844FE061B55884800BF9F35 /* SwiftyJSON.framework in Embed Frameworks */,
+				58ED7FD11B92EF8A00971E55 /* SmappeeKit.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -177,6 +180,7 @@
 				580E4FCF1B557E18000C622F /* Future.framework in Frameworks */,
 				5844FE031B55884800BF9F35 /* Result.framework in Frameworks */,
 				580E4FD11B557E18000C622F /* SwiftyJSON.framework in Frameworks */,
+				58ED7FD01B92EF8A00971E55 /* SmappeeKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -678,7 +682,8 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Morten Bek (B5LFRQ4684)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Morten Bek (B5LFRQ4684)";
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -727,7 +732,8 @@
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Morten Bek (B5LFRQ4684)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Morten Bek (B5LFRQ4684)";
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -836,6 +842,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
+				ENABLE_BITCODE = NO;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
@@ -851,6 +859,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				EMBEDDED_CONTENT_CONTAINS_SWIFT = YES;
+				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Example/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "dk.mojoapps.$(PRODUCT_NAME:rfc1034identifier)";

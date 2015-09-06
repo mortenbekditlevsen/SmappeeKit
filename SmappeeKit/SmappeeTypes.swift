@@ -229,6 +229,14 @@ public func ==(lhs: Consumption, rhs: Consumption) -> Bool {
     return lhs.alwaysOn == rhs.alwaysOn && lhs.consumption == rhs.consumption && lhs.timestamp.isEqualToDate(rhs.timestamp) && lhs.solar == rhs.solar
 }
 
+extension Consumption : Hashable {
+    public var hashValue : Int { get {
+        return alwaysOn.hashValue ^ consumption.hashValue ^ solar.hashValue ^ timestamp.hashValue
+        }
+    }
+    
+}
+
 public enum SmappeeAggregation: Int {
     case FiveMinutePeriod = 1
     case Hourly
